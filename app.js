@@ -23,9 +23,8 @@ app.use(morgan("tiny"));
 app.use(authenticateJWT);
 
 app.use("/auth", authRoutes);
-app.use("/companies", companiesRoutes);
 app.use("/users", usersRoutes);
-app.use("/jobs", jobsRoutes);
+app.use("/games", gamesRoutes);
 
 
 /** Handle 404 errors -- this matches everything */
