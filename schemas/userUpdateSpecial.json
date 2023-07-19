@@ -5,17 +5,22 @@
     "default": {},
     "title": "Root Schema",
     "required": [
-        "username",
-        "email",
-        "password",
-        "date_registered",
-        "permissions"
+        "user_id"
     ],
     "properties": {
+        "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+        },
         "username": {
             "type": "string",
             "minLength": 1,
             "maxLength": 30
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8
         },
         "email": {
             "type": "string",
@@ -23,10 +28,6 @@
             "format": "email",
             "minLength": 6,
             "maxLength": 150
-        },
-        "password": {
-            "type": "string",
-            "minLength": 8
         },
         "first_name": {
             "type": "string",
@@ -42,23 +43,18 @@
             "type": "string",
             "minLength": 1
         },
-        "date_registered": {
-            "type": "string",
-            "format": "date",
-            "minLength": 10,
-            "maxLength": 10
-        },
         "permissions": {
             "type": "integer"
         }
     },
     "examples": [{
+        "user_id": 546,
         "username": "billybob",
+        "password": "agEa3%fa",
         "email": "billybob@gmail.com",
         "first_name": "Billy",
         "last_name": "Bob",
         "country": "Columbia",
-        "date_registered": "2023-03-21",
-        "permissions": 0
+        "permissions": 1
     }]
 }

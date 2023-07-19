@@ -9,8 +9,9 @@ const { ensureCorrectUserOrAdmin, ensureAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
-const userNewSchema = require("../schemas/userNew.json");
-const userUpdateSchema = require("../schemas/userUpdate.json");
+const userUpdateInfoSchema = require("../schemas/userUpdateInfo.json");
+const userUpdatePasswordSchema = require("../schemas/userUpdatePassword.json");
+const userUpdateSpecialSchema = require("../schemas/userUpdateSpecial.json");
 
 const router = express.Router();
 
