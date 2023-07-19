@@ -1,0 +1,50 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "default": {},
+    "title": "Root Schema",
+    "required": [
+        "username",
+        "password"
+    ],
+    "properties": {
+        "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8
+        },
+        "email": {
+            "type": "string",
+            "pattern": "^\\S+@\\S+\\.\\S+$",
+            "format": "email",
+            "minLength": 6,
+            "maxLength": 150
+        },
+        "first_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "last_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "country": {
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "examples": [{
+        "username": "billybob",
+        "email": "billybob@gmail.com",
+        "first_name": "Billy",
+        "last_name": "Bob",
+        "country": "Columbia"
+    }]
+}
