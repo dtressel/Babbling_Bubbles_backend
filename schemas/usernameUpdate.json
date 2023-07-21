@@ -44,7 +44,8 @@
             "minLength": 1
         },
         "permissions": {
-            "type": "integer"
+            "type": "string",
+            "maxLength": 5
         }
     },
     "examples": [{
@@ -55,6 +56,6 @@
         "first_name": "Billy",
         "last_name": "Bob",
         "country": "Columbia",
-        "permissions": 1
+        "permissions": "base"
     }]
 }
