@@ -9,9 +9,9 @@ const { ensureCorrectUserOrAdmin, ensureAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
-const userUpdateInfoSchema = require("../schemas/userUpdateInfo.json");
-const userUpdatePasswordSchema = require("../schemas/userUpdatePassword.json");
-const userUpdateSpecialSchema = require("../schemas/userUpdateSpecial.json");
+const userUpdateSchema = require("../schemas/userUpdate.json");
+const usernameUpdateSchema = require("../schemas/usernameUpdate.json");
+const userAddSchema = require("../schemas/userAdd.json");
 
 const router = express.Router();
 
@@ -23,14 +23,17 @@ const router = express.Router();
  * admin.
  *
  * This returns the newly created user and an authentication token for them:
- *  {user: { username, firstName, lastName, email, isAdmin }, token }
+ *  {
+ *    user: { username, email, firstName, lastName, country, dateRegistered, permissions},
+ *    token: token
+ *  }
  *
  * Authorization required: admin
  **/
 
 router.post("/", ensureAdmin, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, userNewSchema);
+    const validator = jsonschema.validate(req.body, userAddSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
@@ -45,7 +48,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 });
 
 
-/** GET / => { users: [ {username, firstName, lastName, email }, ... ] }
+/** GET / => { users: [ { username, firstName, lastName, email, country, dateRegistered, permissions }, ... ] }
  *
  * Returns list of all users.
  *
@@ -62,35 +65,53 @@ router.get("/", ensureAdmin, async function (req, res, next) {
 });
 
 
-/** GET /[username] => { user }
+/** GET /[userId] => { user }
+ * 
+ * Get info on user by id
  *
- * Returns { username, firstName, lastName, isAdmin, jobs }
- *   where jobs is { id, title, companyHandle, companyName, state }
+ * Returns { id, username, email, firstName, lastName, country, dateRegistered, permissions}
  *
  * Authorization required: admin or same user-as-:username
  **/
 
-router.get("/:username", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.get("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
-    const user = await User.get(req.params.username);
+    const user = await User.get("id", req.params.id);
     return res.json({ user });
   } catch (err) {
     return next(err);
   }
 });
 
+/** GET /[username]/username => { user }
+ * 
+ * Get info on user by username
+ *
+ * Returns { id, username, email, firstName, lastName, country, dateRegistered, permissions}
+ *
+ * Authorization required: admin
+ **/
 
-/** PATCH /[username] { user } => { user }
+router.get("/:username/username", ensureAdmin, async function (req, res, next) {
+  try {
+    const user = await User.get("username", req.params.username);
+    return res.json({ user });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/** PATCH /[userId] { user } => { user }
  *
  * Data can include:
- *   { firstName, lastName, password, email }
+ *   { email, firstName, lastName, country, password }
  *
- * Returns { username, firstName, lastName, email, isAdmin }
+ * Returns { id, username, email, firstName, lastName, country, permissions }
  *
  * Authorization required: admin or same-user-as-:username
  **/
 
-router.patch("/:username", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.patch("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, userUpdateSchema);
     if (!validator.valid) {
@@ -98,45 +119,75 @@ router.patch("/:username", ensureCorrectUserOrAdmin, async function (req, res, n
       throw new BadRequestError(errs);
     }
 
-    const user = await User.update(req.params.username, req.body);
+    const user = await User.update(req.params.id, req.body);
     return res.json({ user });
   } catch (err) {
     return next(err);
   }
 });
 
-
-/** DELETE /[username]  =>  { deleted: username }
+/** DELETE /[userId]  =>  { deleted: username }
  *
  * Authorization required: admin or same-user-as-:username
  **/
 
-router.delete("/:username", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.delete("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
-    await User.remove(req.params.username);
-    return res.json({ deleted: req.params.username });
+    await User.remove(req.params.id);
+    return res.json({ deleted: req.params.id });
   } catch (err) {
     return next(err);
   }
 });
 
-
-/** POST /[username]/jobs/[id]  { state } => { application }
+/** PATCH /[userId]/special { user } => { user }
  *
- * Returns {"applied": jobId}
+ * Data can include:
+ *   { username, permissions }
  *
- * Authorization required: admin or same-user-as-:username
- * */
+ * Returns { id, username, email, firstName, lastName, country, permissions }
+ *
+ * Authorization required: admin
+ **/
 
-router.post("/:username/jobs/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.patch("/:id/special", ensureAdmin, async function (req, res, next) {
   try {
-    const jobId = +req.params.id;
-    await User.applyToJob(req.params.username, jobId);
-    return res.json({ applied: jobId });
+    const validator = jsonschema.validate(req.body, usernameUpdateSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+
+    const user = await User.update(req.params.id, req.body);
+    return res.json({ ...user, id: req.params.id });
   } catch (err) {
     return next(err);
   }
 });
 
+/** GET /[userId]/stats => { user }
+ *
+ * Returns { 
+ *   numOfPlaysSingle,
+ *   curr10Sma,
+ *   curr100Sma,
+ *   best10Sma,
+ *   best100Sma
+ *   top10SinglePlays: [{ playId, playTime, score, numOfWords, bestWord, bestWordScore }, ...],
+ *   top10Words: [{ playId, playTime, bestWord, bestWordScore, bestWordBoardState }, ...],
+ *   top10AvgWordScores: [{ playId, playTime, avgWordScore, score, numOfWords }]
+ * }
+ *
+ * Authorization required: admin
+ **/
+
+router.get("/:id/stats", ensureAdmin, async function (req, res, next) {
+  try {
+    const stats = await User.getStats(req.params.id);
+    return res.json({ stats });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 module.exports = router;
