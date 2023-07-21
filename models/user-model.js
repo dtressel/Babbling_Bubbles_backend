@@ -284,7 +284,6 @@ class User {
         LIMIT 10`,
       [userId]   
     );
-    top10AvgWordScores = top10AvgWordScores.rows;
 
     if (!overallStats.rows[0]) {
       throw new NotFoundError(`No user: ${id}`);
