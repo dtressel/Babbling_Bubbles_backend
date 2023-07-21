@@ -8,7 +8,7 @@ CREATE TABLE User
   first_name VARCHAR NOT NULL,
   last_name VARCHAR NOT NULL,
   date_registered DATE NOT NULL DEFAULT CURRENT_DATE,
-  permissions INT NOT NULL DEFAULT 0,
+  permissions VARCHAR NOT NULL DEFAULT "base",
   best_10_sma FLOAT NOT NULL DEFAULT 0,
   best_100_sma FLOAT NOT NULL DEFAULT 0,
   curr_10_sma FLOAT NOT NULL DEFAULT 0,
