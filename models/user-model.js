@@ -181,7 +181,7 @@ class User {
    * or a serious security risks are opened.
    */
 
-  static async update(id, data) {
+  static async update(userId, data) {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, BCRYPT_WORK_FACTOR);
     }
@@ -203,10 +203,10 @@ class User {
                                 last_name AS "lastName",
                                 country,
                                 permissions`;
-    const result = await db.query(querySql, [...values, id]);
+    const result = await db.query(querySql, [...values, userId]);
     const user = result.rows[0];
 
-    if (!user) throw new NotFoundError(`No user: ${id}`);
+    if (!user) throw new NotFoundError(`No user: ${userId}`);
 
     delete user.password;
     return user;
@@ -216,17 +216,17 @@ class User {
 
   /** Delete given user from database; returns undefined. */
 
-  static async remove(id) {
+  static async remove(userId) {
     let result = await db.query(
           `DELETE
            FROM users
            WHERE id = $1
            RETURNING id`,
-        [id],
+        [userId],
     );
     const user = result.rows[0];
 
-    if (!user) throw new NotFoundError(`No user: ${id}`);
+    if (!user) throw new NotFoundError(`No user: ${userId}`);
   }
 
 

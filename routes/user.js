@@ -74,9 +74,9 @@ router.get("/", ensureAdmin, async function (req, res, next) {
  * Authorization required: admin or same user-as-:username
  **/
 
-router.get("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.get("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
-    const user = await User.get("id", req.params.id);
+    const user = await User.get("id", req.params.userId);
     return res.json({ user });
   } catch (err) {
     return next(err);
@@ -111,7 +111,7 @@ router.get("/:username/username", ensureAdmin, async function (req, res, next) {
  * Authorization required: admin or same-user-as-:username
  **/
 
-router.patch("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, userUpdateSchema);
     if (!validator.valid) {
@@ -119,7 +119,7 @@ router.patch("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const user = await User.update(req.params.id, req.body);
+    const user = await User.update(req.params.userId, req.body);
     return res.json({ user });
   } catch (err) {
     return next(err);
@@ -131,10 +131,10 @@ router.patch("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
  * Authorization required: admin or same-user-as-:username
  **/
 
-router.delete("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) {
+router.delete("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
-    await User.remove(req.params.id);
-    return res.json({ deleted: req.params.id });
+    await User.remove(req.params.userId);
+    return res.json({ deleted: req.params.userId });
   } catch (err) {
     return next(err);
   }
@@ -150,7 +150,7 @@ router.delete("/:id", ensureCorrectUserOrAdmin, async function (req, res, next) 
  * Authorization required: admin
  **/
 
-router.patch("/:id/special", ensureAdmin, async function (req, res, next) {
+router.patch("/:userId/special", ensureAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, usernameUpdateSchema);
     if (!validator.valid) {
@@ -158,8 +158,8 @@ router.patch("/:id/special", ensureAdmin, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const user = await User.update(req.params.id, req.body);
-    return res.json({ ...user, id: req.params.id });
+    const user = await User.update(req.params.userId, req.body);
+    return res.json({ ...user, id: req.params.userId });
   } catch (err) {
     return next(err);
   }
@@ -181,9 +181,9 @@ router.patch("/:id/special", ensureAdmin, async function (req, res, next) {
  * Authorization required: admin
  **/
 
-router.get("/:id/stats", ensureAdmin, async function (req, res, next) {
+router.get("/:userId/stats", ensureAdmin, async function (req, res, next) {
   try {
-    const stats = await User.getStats(req.params.id);
+    const stats = await User.getStats(req.params.userId);
     return res.json({ stats });
   } catch (err) {
     return next(err);
