@@ -32,4 +32,23 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
+/** Combine where clauses used for filtering
+ * 
+ * Parameter: An array of where clauses without 'WHERE' or 'AND' keywords
+ * 
+ * Returns: A string of combined where clauses with "WHERE" and 'AND' keywords
+ * 
+ */
+
+function combineWhereClauses(clauseArray) {
+  if (!clauseArray[0]) {
+    return '';
+  }
+  let whereString = `WHERE ${clauseArray[0]}`;
+  for (let i = 1; i < clauseArray.length; i++) {
+    whereString += ` AND ${clauseArray[i]}`;
+  }
+  return whereString;
+}
+
 module.exports = { sqlForPartialUpdate };
