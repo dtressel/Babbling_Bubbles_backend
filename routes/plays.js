@@ -28,7 +28,7 @@ const playsFiltersAll = [
   "oldestDate",
   "newestDate",
   "bestWord"
-]
+];
 
 const router = express.Router();
 
