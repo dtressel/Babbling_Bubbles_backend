@@ -1,7 +1,6 @@
 "use strict";
 
 const db = require("../db");
-const bcrypt = require("bcrypt");
 const { sqlForPartialUpdate, combineWhereClauses } = require("../helpers/sql");
 const {
   NotFoundError,
@@ -206,6 +205,64 @@ class Plays {
   }
 
 
+
+  /** Update user data with `data`.
+  *
+  * This is a "partial update" --- it's fine if data doesn't contain
+  * all the fields; this only changes provided ones.
+  *
+  * Data can include:
+  *   { recent100Single, top10Words, top10Plays, top10AvgWordScore }
+  *
+  * Returns { id, userId, recent100Single, top10Words, top10Plays, top10AvgWordScore }
+  *
+  * Throws NotFoundError if not found.
+  *
+  */
+
+  static async update(playId, data) {
+    const { setCols, values } = sqlForPartialUpdate(
+        data,
+        {
+          recent100Single: "recent_100_single",
+          top10Words: "top_10_words",
+          top10Plays: "top_10_plays",
+          top10AvgWordScore: "top_10_avg_word_score"
+        });
+    const idVarIdx = "$" + (values.length + 1);
+
+    const querySql = `UPDATE users 
+                      SET ${setCols} 
+                      WHERE id = ${idVarIdx} 
+                      RETURNING id,
+                                user_id AS "userId",
+                                recent_100_single AS "recent100Single",
+                                top_10_words AS "top10Words",
+                                top_10_plays AS "top10Plays",
+                                top_10_avg_word_score AS "top10AvgWordScore"`;
+    const result = await db.query(querySql, [...values, playId]);
+    const play = result.rows[0];
+
+    if (!play) throw new NotFoundError(`No play: ${playId}`);
+
+    return play;
+  }
+
+
+  /** Delete given play from database; returns undefined. */
+
+  static async remove(playId) {
+    let result = await db.query(
+          `DELETE
+           FROM plays
+           WHERE id = $1
+           RETURNING id`,
+        [playId],
+    );
+    const play = result.rows[0];
+
+    if (!play) throw new NotFoundError(`No play: ${playId}`);
+  }
 }
 
 module.exports = Plays;

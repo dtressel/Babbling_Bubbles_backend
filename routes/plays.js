@@ -10,6 +10,7 @@ const { BadRequestError } = require("../expressError");
 const Plays = require("../models/plays-model");
 const playAddSchema = require("../schemas/playAdd.json");
 const playSearchSchema = require("../schemas/playSearch.json");
+const playUpdateSchema = require("../schemas/playUpdate.json");
 const playsFiltersNums = [
   "userId",
   "gameType",
@@ -92,7 +93,7 @@ router.get("/", async function (req, res, next) {
  *    token: token
  *  }
  *
- * Authorization required: admin
+ * Authorization required: logged in
  **/
 
 router.post("/", ensureLoggedIn, async function (req, res, next) {
@@ -120,11 +121,55 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: admin or same user-as-:username
  **/
 
-router.get("/:id", async function (req, res, next) {
+router.get("/:playId", async function (req, res, next) {
   try {
-    const play = await Plays.get(req.params.id);
+    const play = await Plays.get(req.params.playId);
     return res.json({ play });
   } catch (err) {
     return next(err);
   }
 });
+
+
+/** PATCH /[playId] { play } => { play }
+ *
+ * Data can include:
+ *   { recent100Single, top10Words, top10Plays, top10AvgWordScore }
+ *
+ * Returns { id, userId, recent100Single, top10Words, top10Plays, top10AvgWordScore }
+ *
+ * Authorization required: logged in
+ **/
+
+router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const validator = jsonschema.validate(req.body, playUpdateSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+
+    const play = await Plays.update(req.params.playId, req.body);
+    return res.json({ play });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+/** DELETE /[playId]  =>  { deleted: username }
+ *
+ * Authorization required: admin
+ **/
+
+router.delete("/:playId", ensureAdmin, async function (req, res, next) {
+  try {
+    await User.remove(req.params.playId);
+    return res.json({ deleted: req.params.playId });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+module.exports = router;
