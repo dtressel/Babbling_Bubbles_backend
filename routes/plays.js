@@ -7,7 +7,7 @@ const jsonschema = require("jsonschema");
 const express = require("express");
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
-const Plays = require("../models/plays-model");
+const Play = require("../models/play-model");
 const playAddSchema = require("../schemas/playAdd.json");
 const playSearchSchema = require("../schemas/playSearch.json");
 const playUpdateSchema = require("../schemas/playUpdate.json");
@@ -73,7 +73,7 @@ router.get("/", async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const plays = await Plays.getAll(filters);
+    const plays = await Play.getAll(filters);
     return res.json({ plays });
   } catch (err) {
     return next(err);
@@ -123,7 +123,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/:playId", async function (req, res, next) {
   try {
-    const play = await Plays.get(req.params.playId);
+    const play = await Play.get(req.params.playId);
     return res.json({ play });
   } catch (err) {
     return next(err);
@@ -149,7 +149,7 @@ router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const play = await Plays.update(req.params.playId, req.body);
+    const play = await Play.update(req.params.playId, req.body);
     return res.json({ play });
   } catch (err) {
     return next(err);

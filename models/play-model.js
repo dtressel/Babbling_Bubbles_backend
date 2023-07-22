@@ -10,7 +10,7 @@ const {
 
 /** Related functions for plays. */
 
-class Plays {
+class Play {
   static filterKey = {
     userId: "user_id",
     gameType: "game_type",
@@ -265,4 +265,4 @@ class Plays {
   }
 }
 
-module.exports = Plays;
+module.exports = Play;
