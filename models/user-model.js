@@ -60,8 +60,7 @@ class User {
    * Throws BadRequestError on duplicates.
    **/
 
-  static async register(
-      { username, password, firstName, lastName, email, country }) {
+  static async register({ username, password, firstName, lastName, email, country }) {
     const duplicateCheck = await db.query(
           `SELECT username
            FROM users
@@ -112,12 +111,13 @@ class User {
 
   /** Find all users.
    *
-   * Returns [{ username, first_name, last_name, email, permissions }, ...]
+   * Returns [{ id, username, first_name, last_name, email, permissions }, ...]
    **/
 
   static async findAll() {
     const result = await db.query(
-          `SELECT username,
+          `SELECT id,
+                  username,
                   first_name AS "firstName",
                   last_name AS "lastName",
                   email,
@@ -157,7 +157,7 @@ class User {
 
     const user = userRes.rows[0];
 
-    if (!user) throw new NotFoundError(`No user: ${username}`);
+    if (!user) throw new NotFoundError(`No user: ${value}`);
 
     return user;
   }
@@ -244,7 +244,7 @@ class User {
 
     const top10SinglePlays = await db.query(
        `SELECT id AS "playId",
-               played_at AS "playTime",
+               play_time AS "playTime",
                score,
                num_of_words AS "numOfWords",
                best_word AS "bestWord",
@@ -259,7 +259,7 @@ class User {
 
     const top10Words = await db.query(
        `SELECT id AS "playId",
-               played_at AS "playTime",
+               play_time AS "playTime",
                best_word AS "bestWord",
                best_word_score AS "bestWordScore"
                best_word_board_state AS "bestWordBoardState"
@@ -273,7 +273,7 @@ class User {
 
     const top10AvgWordScores = await db.query(
        `SELECT id AS "playId",
-               played_at AS "playTime",
+               play_time AS "playTime",
                avg_word_score AS "avgWordScore",
                score
                num_of_words AS "numOfWords"

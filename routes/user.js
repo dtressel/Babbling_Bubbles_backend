@@ -5,9 +5,9 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureCorrectUserOrAdmin, ensureAdmin } = require("../middleware/auth");
+const { ensureCorrectUserOrAdmin, ensureAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
-const User = require("../models/user");
+const User = require("../models/user-model");
 const { createToken } = require("../helpers/tokens");
 const userUpdateSchema = require("../schemas/userUpdate.json");
 const usernameUpdateSchema = require("../schemas/usernameUpdate.json");
@@ -48,7 +48,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 });
 
 
-/** GET / => { users: [ { username, firstName, lastName, email, country, dateRegistered, permissions }, ... ] }
+/** GET / => { users: [ { id, username, firstName, lastName, email, country, dateRegistered, permissions }, ... ] }
  *
  * Returns list of all users.
  *

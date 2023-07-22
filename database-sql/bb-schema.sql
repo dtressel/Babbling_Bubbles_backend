@@ -22,7 +22,7 @@ CREATE TABLE Plays
   user_id INT NOT NULL,
   game_type INT NOT NULL DEFAULT 0,
   game_id INT,
-  played_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP(0),
+  play_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP(0),
   score INT NOT NULL,
   num_of_words INT NOT NULL,
   avg_word_score INT,
