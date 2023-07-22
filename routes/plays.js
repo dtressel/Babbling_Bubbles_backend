@@ -131,32 +131,6 @@ router.get("/:playId", async function (req, res, next) {
 });
 
 
-/** PATCH /[playId] { play } => { play }
- *
- * Data can include:
- *   { recent100Single, top10Words, top10Plays, top10AvgWordScore }
- *
- * Returns { id, userId, recent100Single, top10Words, top10Plays, top10AvgWordScore }
- *
- * Authorization required: logged in
- **/
-
-router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
-  try {
-    const validator = jsonschema.validate(req.body, playUpdateSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
-      throw new BadRequestError(errs);
-    }
-
-    const play = await Play.update(req.params.playId, req.body);
-    return res.json({ play });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-
 /** DELETE /[playId]  =>  { deleted: username }
  *
  * Authorization required: admin

@@ -1,4 +1,4 @@
-CREATE TABLE User
+CREATE TABLE users
 (
   id SERIAL PRIMARY KEY,
   username VARCHAR NOT NULL,
@@ -14,9 +14,10 @@ CREATE TABLE User
   curr_10_sma FLOAT NOT NULL DEFAULT 0,
   curr_100_sma FLOAT NOT NULL DEFAULT 0,
   num_of_plays_single INT NOT NULL DEFAULT 0,
+  last_play_single DATE
 );
 
-CREATE TABLE Plays
+CREATE TABLE plays
 (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
@@ -29,9 +30,5 @@ CREATE TABLE Plays
   best_word VARCHAR,
   best_word_score INT,
   best_word_board_state VARCHAR,
-  recent_100_single BOOLEAN NOT NULL DEFAULT TRUE,
-  top_10_words BOOLEAN NOT NULL DEFAULT FALSE,
-  top_10_plays BOOLEAN DEFAULT FALSE,
-  top_10_avg_word_score BOOLEAN NOT NULL DEFAULT FALSE,
   FOREIGN KEY (user_id) REFERENCES User(id)
 );
