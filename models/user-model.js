@@ -235,8 +235,8 @@ class User {
         `SELECT num_of_plays_single AS "numOfPlaysSingle",
                 curr_10_sma AS "curr10Sma",
                 curr_100_sma AS "curr100Sma",
-                best_10_sma AS "best10Sma",
-                best_100_sma AS "best100Sma"
+                peak_10_sma AS "peak10Sma",
+                peak_100_sma AS "peak100Sma"
         FROM users
         WHERE user_id = $1`,
       [userId]
