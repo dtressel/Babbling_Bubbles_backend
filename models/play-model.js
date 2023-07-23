@@ -153,18 +153,63 @@ class Play {
         valueArray
     );
 
-    // update last_play_single
+    // update users table values related to play results
     if (game_type === 0) {
+      // update last_play_single
       await db.query(
           `UPDATE users 
            SET last_play_single = CURRENT_DATE
            WHERE id = $1`,
         [dataObj.userId]
-      )
+      );
 
       // update wmas
+      const wmasToCalc = [100, 10];
+      const lastSingleScores = await db.query(
+         `SELECT score
+          FROM plays
+          WHERE user_id = $1
+          ORDER BY id DESC
+          LIMIT $2`,
+        [dataObj.userId, wmasToCalc[0]]
+      ).rows;
+      const calculatedWmas = wmasToCalc.map((wma) => {
+        if (lastSingleScores.length >= wma) {
+          const wmaNumerator = lastSingleScores.slice(0, wma).reduce((accum, curr, idx) => {
+            return accum + curr.score * (wma - idx);
+          }, 0);
+          const wmaDenominator = (wma * (wma + 1)) / 2;
+          const wmaCalculation = wmaNumerator / wmaDenominator;
+          const wmaCalculationRounded = Math.round(wmaCalculation * 100) / 100;
+          return wmaCalculationRounded;
+        } 
+        else return null;
+      });
+      const wmaUpdateResults = await db.query(
+         `UPDATE users
+          SET curr_100_wma = $1, curr_10_wma = $2
+          WHERE id = $3
+          RETURNING peak_10_wma AS "peak10Wma",
+                    peak_100_wma AS "peak100Wma"`,
+        [
+          calculatedWmas[0],
+          calculatedWmas[1],
+          dataObj.userId
+        ]
+      ).rows[0];
+      if (wmaUpdateResults.peak100Wma < calculatedWmas[0] || wmaUpdateResults.peak10Wma < calculatedWmas[1]) {
+        await db.query(
+           `UPDATE users
+            SET peak_100_wma = $1, peak_10_wma = $2
+            WHERE id = $3`,
+          [
+            Math.max(wmaUpdateResults.peak100Wma, calculatedWmas[0]),
+            Math.max(wmaUpdateResults.peak10Wma, calculatedWmas[1]),
+            dataObj.userId
+          ]
+        )
+      }
     }
-
 
     const user = result.rows[0];
 
