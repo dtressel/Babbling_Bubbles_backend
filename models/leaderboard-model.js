@@ -26,7 +26,7 @@ class Leaderboard {
            ON p.user_id = u.id
        ORDER BY score DESC
        LIMIT 10`
-    );
+    ).rows;
 
     const bestWordScores = await db.query(
       `SELECT p.id AS "playId",
@@ -39,45 +39,45 @@ class Leaderboard {
            ON p.user_id = u.id
        ORDER BY best_word_score DESC
        LIMIT 10`
-    );
+    ).rows;
 
-    const bestCurrent10Sma = await db.query(
+    const bestCurrent10Wma = await db.query(
       `SELECT id,
               username,
-              curr_10_sma AS "curr10Sma"
+              curr_10_wma AS "curr10Wma"
        FROM users
        WHERE last_play_single >= NOW() - INTERVAL '60 days'
-       ORDER BY curr_10_sma DESC
+       ORDER BY curr_10_wma DESC
        LIMIT 10`
-    );
+    ).rows;
 
-    const bestCurrent100Sma = await db.query(
+    const bestCurrent100Wma = await db.query(
       `SELECT id,
               username,
-              curr_100_sma AS "curr100Sma"
+              curr_100_wma AS "curr100Wma"
        FROM users
        WHERE last_play_single >= NOW() - INTERVAL '60 days'
-       ORDER BY curr_100_sma DESC
+       ORDER BY curr_100_wma DESC
        LIMIT 10`
-    );
+    ).rows;
 
-    const bestPeak10Sma = await db.query(
+    const bestPeak10Wma = await db.query(
       `SELECT id,
               username,
-              peak_10_sma AS "peak10Sma"
+              peak_10_wma AS "peak10Wma"
        FROM users
-       ORDER BY peak_10_sma DESC
+       ORDER BY peak_10_wma DESC
        LIMIT 10`
-    );
+    ).rows;
 
-    const bestPeak100Sma = await db.query(
+    const bestPeak100Wma = await db.query(
       `SELECT id,
               username,
-              peak_100_sma AS "peak100Sma"
+              peak_100_wma AS "peak100Wma"
        FROM users
-       ORDER BY peak_100_sma DESC
+       ORDER BY peak_100_wma DESC
        LIMIT 10`
-    );
+    ).rows;
 
     const bestAvgWordScoreMin15 = await db.query(
       `SELECT p.id AS "playId",
@@ -90,9 +90,19 @@ class Leaderboard {
        WHERE num_of_words > 14
        ORDER BY avg_word_score DESC
        LIMIT 10`  
-    );
+    ).rows;
 
-    return plays.rows;
+    const leaderboards = {
+      bestAvgWordScoreMin15,
+      bestCurrent100Wma,
+      bestCurrent10Wma,
+      bestPeak100Wma,
+      bestPeak10Wma,
+      bestPlayScoresSingle,
+      bestWordScores
+    }
+
+    return leaderboards;
   }
 }
 

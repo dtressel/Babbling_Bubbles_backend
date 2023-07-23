@@ -161,7 +161,10 @@ class Play {
            WHERE id = $1`,
         [dataObj.userId]
       )
+
+      // update wmas
     }
+
 
     const user = result.rows[0];
 

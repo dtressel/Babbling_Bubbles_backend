@@ -233,10 +233,10 @@ class User {
   static async getStats(userId) {
     const overallStats = await db.query(
         `SELECT num_of_plays_single AS "numOfPlaysSingle",
-                curr_10_sma AS "curr10Sma",
-                curr_100_sma AS "curr100Sma",
-                peak_10_sma AS "peak10Sma",
-                peak_100_sma AS "peak100Sma"
+                curr_10_wma AS "curr10Wma",
+                curr_100_wma AS "curr100Wma",
+                peak_10_wma AS "peak10Wma",
+                peak_100_wma AS "peak100Wma"
         FROM users
         WHERE user_id = $1`,
       [userId]

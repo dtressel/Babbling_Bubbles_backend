@@ -169,10 +169,10 @@ router.patch("/:userId/special", ensureAdmin, async function (req, res, next) {
  *
  * Returns { 
  *   numOfPlaysSingle,
- *   curr10Sma,
- *   curr100Sma,
- *   best10Sma,
- *   best100Sma
+ *   curr10Wma,
+ *   curr100Wma,
+ *   best10Wma,
+ *   best100Wma
  *   top10SinglePlays: [{ playId, playTime, score, numOfWords, bestWord, bestWordScore }, ...],
  *   top10Words: [{ playId, playTime, bestWord, bestWordScore, bestWordBoardState }, ...],
  *   top10AvgWordScores: [{ playId, playTime, avgWordScore, score, numOfWords }]
