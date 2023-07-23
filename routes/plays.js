@@ -83,14 +83,23 @@ router.get("/", async function (req, res, next) {
 
 /** POST / { play }  => { play }
  *
- * Adds a new user. This is not the registration endpoint --- instead, this is
- * only for admin users to add new users. The new user being added can be an
- * admin.
+ * Adds a new play and updates wmas and last_play_single in users data for user
+ * 
+ * Provide the following play obj:
+ * {
+ *   userId,
+ *   gameType,
+ *   gameId (optional),
+ *   score,
+ *   numOfWords,
+ *   bestWord,
+ *   bestWordScore,
+ *   bestWordBoardState
+ * }
  *
- * This returns the newly created user and an authentication token for them:
+ * This returns newly calculated play stats and user stats:
  *  {
- *    user: { username, email, firstName, lastName, country, dateRegistered, permissions},
- *    token: token
+ *    stats: avgWordScore, curr100Wma, curr10Wma, isPeak100Wma, isPeak10Wma
  *  }
  *
  * Authorization required: logged in
@@ -104,8 +113,8 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const play = await Play.add(req.body);
-    return res.status(201).json({ play });
+    const stats = await Play.add(req.body);
+    return res.status(201).json({ stats });
   } catch (err) {
     return next(err);
   }
