@@ -75,6 +75,29 @@ class User {
   }
 
 
+
+    /** Checks for correct username for user that admin is trying to delete
+   *
+   * Throws BadRequestError if username is incorrect
+   *
+   * If provided username is correct, no error, and returns undefined
+   **/
+    static async checkIfUsernameMatchesUserId(userId, providedUsername) {
+      // query user username using userId
+      const res = await db.query(
+          `SELECT username
+           FROM users
+           WHERE id = $1`,
+        [userId]
+      );
+      const storedUsername = res.rows[0].username;
+      // check if usernames match
+      if (storedUsername !== providedUsername) {
+        throw new BadRequestError("Invalid username");
+      }
+    }
+
+
   /** Register user with data.
    *
    * Returns { username, firstName, lastName, email, country, permissions }
@@ -83,7 +106,6 @@ class User {
    **/
 
   static async register({ username, password, firstName, lastName, email, country }) {
-    console.log("in Users.register");
     const duplicateCheck = await db.query(
           `SELECT username
            FROM users
@@ -96,7 +118,6 @@ class User {
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
-    console.log('hashedPassword', hashedPassword);
     const result = await db.query(
           `INSERT INTO users
            (username,
@@ -106,7 +127,8 @@ class User {
             email,
             country)
            VALUES ($1, $2, $3, $4, $5, $6)
-           RETURNING username,
+           RETURNING id,
+                     username,
                      first_name AS "firstName",
                      last_name AS "lastName",
                      email,
@@ -120,6 +142,61 @@ class User {
           lastName,
           email,
           country
+        ],
+    );
+
+    const user = result.rows[0];
+
+    return user;
+  }
+
+
+  /** Allows an admin to add a user and set permissions at the same time.
+   *
+   * Returns { username, firstName, lastName, email, country, permissions }
+   *
+   * Throws BadRequestError on duplicates.
+   **/
+
+  static async add({ username, password, firstName, lastName, email, country, permissions }) {
+    const duplicateCheck = await db.query(
+          `SELECT username
+           FROM users
+           WHERE username = $1`,
+        [username],
+    );
+
+    if (duplicateCheck.rows[0]) {
+      throw new BadRequestError(`Duplicate username: ${username}`);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
+    const result = await db.query(
+          `INSERT INTO users
+           (username,
+            password,
+            first_name,
+            last_name,
+            email,
+            country,
+            permissions)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           RETURNING id,
+                     username,
+                     first_name AS "firstName",
+                     last_name AS "lastName",
+                     email,
+                     country,
+                     date_registered AS "dateRegistered",
+                     permissions`,
+        [
+          username,
+          hashedPassword,
+          firstName,
+          lastName,
+          email,
+          country,
+          permissions
         ],
     );
 
@@ -156,8 +233,7 @@ class User {
 
   /** Given an id or username, return data about user.
    *
-   * Returns { username, first_name, last_name, permissions, jobs }
-   *   where jobs is { id, title, company_handle, company_name, state }
+   * Returns { user }
    *
    * Throws NotFoundError if user not found.
    **/
@@ -259,7 +335,7 @@ class User {
                 peak_10_wma AS "peak10Wma",
                 peak_100_wma AS "peak100Wma"
         FROM users
-        WHERE user_id = $1`,
+        WHERE id = $1`,
       [userId]
     );
 
@@ -282,7 +358,7 @@ class User {
        `SELECT id AS "playId",
                play_time AS "playTime",
                best_word AS "bestWord",
-               best_word_score AS "bestWordScore"
+               best_word_score AS "bestWordScore",
                best_word_board_state AS "bestWordBoardState"
         FROM plays
         WHERE user_id = $1
@@ -296,7 +372,7 @@ class User {
        `SELECT id AS "playId",
                play_time AS "playTime",
                avg_word_score AS "avgWordScore",
-               score
+               score,
                num_of_words AS "numOfWords"
         FROM plays
         WHERE user_id = $1
