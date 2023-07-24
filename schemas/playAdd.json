@@ -6,7 +6,6 @@
     "title": "Root Schema",
     "required": [
         "userId",
-        "gameType",
         "score",
         "numOfWords"
     ],
