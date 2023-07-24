@@ -97,7 +97,7 @@ class Leaderboard {
       `SELECT p.id AS "playId",
               u.username,
               p.play_time AS "playTime",
-              p.avg_word_score AS "avgWordScore",
+              p.avg_word_score AS "avgWordScore"
        FROM plays AS "p"
        INNER JOIN users AS "u" 
            ON p.user_id = u.id

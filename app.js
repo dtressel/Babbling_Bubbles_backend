@@ -25,7 +25,7 @@ app.use(authenticateJWT);
 app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/plays", playsRoutes);
-app.use("/leaderbaords", leaderboardsRoutes);
+app.use("/leaderboards", leaderboardsRoutes);
 
 
 /** Handle 404 errors -- this matches everything */
