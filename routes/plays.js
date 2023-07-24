@@ -52,11 +52,11 @@ const router = express.Router();
  *
  * Authorization required: none
  **/
-
+// *************************************Date filters don't work****************************************************************
 router.get("/", async function (req, res, next) {
   const filters = req.query;
   // change numerical values into ints since everything arrives as strings
-  for (const filter of filters) {
+  for (const filter in filters) {
     if (playsFiltersNums.includes(filter)) {
       filters[filter] = +filters[filter];
     }
