@@ -54,18 +54,17 @@ const router = express.Router();
  **/
 // *************************************Date filters don't work****************************************************************
 router.get("/", async function (req, res, next) {
-  const filters = req.query;
-  // change numerical values into ints since everything arrives as strings
-  for (const filter in filters) {
-    if (playsFiltersNums.includes(filter)) {
-      filters[filter] = +filters[filter];
-    }
-    else if (!playsFiltersAll.includes(filter)) {
-      throw new BadRequestError(`${filter} is not a correct filter property.`);
-    }
-  }
-
   try {
+    const filters = req.query;
+    // change numerical values into ints since everything arrives as strings
+    for (const filter in filters) {
+      if (playsFiltersNums.includes(filter)) {
+        filters[filter] = +filters[filter];
+      }
+      else if (!playsFiltersAll.includes(filter)) {
+        throw new BadRequestError(`${filter} is not a correct filter property.`);
+      }
+    }
     const validator = jsonschema.validate(filters, playSearchSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
