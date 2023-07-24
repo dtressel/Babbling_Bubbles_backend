@@ -5,6 +5,7 @@
     "default": {},
     "title": "Root Schema",
     "required": [],
+    "additionalProperties": false,
     "properties": {
         "username": {
             "type": "string",

@@ -7,12 +7,13 @@
     "required": [
         "password"
     ],
+    "additionalProperties": false,
     "properties": {
         "password": {
             "type": "string",
             "minLength": 8
         },
-        "new_password": {
+        "newPassword": {
             "type": "string",
             "minLength": 8
         },
@@ -23,12 +24,12 @@
             "minLength": 6,
             "maxLength": 150
         },
-        "first_name": {
+        "firstName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 50
         },
-        "last_name": {
+        "lastName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 50
@@ -39,7 +40,6 @@
         }
     },
     "examples": [{
-        "username": "billybob",
         "email": "billybob@gmail.com",
         "first_name": "Billy",
         "last_name": "Bob",
