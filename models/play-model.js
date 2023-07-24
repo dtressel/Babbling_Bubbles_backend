@@ -118,6 +118,8 @@ class Play {
   static async add(dataObj) {
     // calculate avg word score based on score and numOfWords
     dataObj.avgWordScore = (Math.round(dataObj.score / dataObj.numOfWords * 100) / 100);
+    // ***************************************************use sql for partial update for this************************************************
+    // ****************************************so that it doesn't try to force a null value for gameType*************************************
     const itemsToInsert = [
       "userId",
       "gameType",
@@ -131,7 +133,7 @@ class Play {
     ];
     // create an array of the values in the order used in query
     const valueArray = itemsToInsert.map(item => {
-      return dataObj[item] ? dataObj[item] : null;
+      return dataObj[item] !== undefined ? dataObj[item] : null;
     });
 
     await db.query(
@@ -144,12 +146,12 @@ class Play {
                               best_word,
                               best_word_score,
                               best_word_board_state)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         valueArray
     );
 
     // update users table values related to play results
-    if (game_type === 0) {
+    if (dataObj.gameType === 0 || dataObj.gameType === undefined) {
       // update last_play_single
       await db.query(
           `UPDATE users 
