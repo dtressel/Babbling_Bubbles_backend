@@ -61,12 +61,13 @@ class User {
    **/
   static async checkIfCorrectPassword(userId, password) {
     // query user hashed password using userId
-    const storedHashedPassword = await db.query(
+    const res = await db.query(
         `SELECT password
          FROM users
-         WHERE user_id = $1`,
+         WHERE id = $1`,
       [userId]
-    ).rows[0].password;
+    );
+    const storedHashedPassword = res.rows[0].password;
     // check if password is correct, and if not, throw error
     if (!await bcrypt.compare(password, storedHashedPassword)) {
       throw new UnauthorizedError("Invalid password");
@@ -82,6 +83,7 @@ class User {
    **/
 
   static async register({ username, password, firstName, lastName, email, country }) {
+    console.log("in Users.register");
     const duplicateCheck = await db.query(
           `SELECT username
            FROM users
@@ -94,7 +96,7 @@ class User {
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
-
+    console.log('hashedPassword', hashedPassword);
     const result = await db.query(
           `INSERT INTO users
            (username,
@@ -102,9 +104,8 @@ class User {
             first_name,
             last_name,
             email,
-            country,
-            permissions)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+            country)
+           VALUES ($1, $2, $3, $4, $5, $6)
            RETURNING username,
                      first_name AS "firstName",
                      last_name AS "lastName",
@@ -118,8 +119,7 @@ class User {
           firstName,
           lastName,
           email,
-          country,
-          permissions
+          country
         ],
     );
 
@@ -172,8 +172,8 @@ class User {
                   date_registered AS "dateRegistered",
                   permissions
            FROM users
-           WHERE $1 = $2`,
-        [identifierType, value],
+           WHERE ${identifierType} = $1`,
+        [value],
     );
 
     const user = userRes.rows[0];

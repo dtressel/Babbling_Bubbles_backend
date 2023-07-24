@@ -162,14 +162,15 @@ class Play {
       // wmasToCalc should be ordered largest to smallest
       const wmasToCalc = [100, 10];
       // get recent scores including just inserted for calculation
-      const lastSingleScores = await db.query(
+      const res1 = await db.query(
          `SELECT score
           FROM plays
           WHERE user_id = $1
           ORDER BY id DESC
           LIMIT $2`,
         [dataObj.userId, wmasToCalc[0]]
-      ).rows;
+      );
+      const lastSingleScores = res1.rows;
 
       const stats = {
         avgWordScore: dataObj.avgWordScore
@@ -189,7 +190,7 @@ class Play {
           } 
           else return null;
         });
-        const formerPeakWmas = await db.query(
+        const res2 = await db.query(
            `UPDATE users
             SET curr_100_wma = $1, curr_10_wma = $2
             WHERE id = $3
@@ -200,7 +201,8 @@ class Play {
             calculatedWmas[1],
             dataObj.userId
           ]
-        ).rows[0];
+        );
+        const formerPeakWmas = res2.rows[0];
         if (formerPeakWmas.peak100Wma < calculatedWmas[0] || formerPeakWmas.peak10Wma < calculatedWmas[1]) {
           await db.query(
              `UPDATE users

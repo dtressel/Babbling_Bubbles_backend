@@ -24,7 +24,7 @@ class Leaderboard {
    **/
 
   static async getAll() {
-    const bestPlayScoresSingle = await db.query(
+    const res1 = await db.query(
       `SELECT p.id AS "playId",
               u.username,
               p.play_time AS "playTime",
@@ -34,9 +34,10 @@ class Leaderboard {
            ON p.user_id = u.id
        ORDER BY score DESC
        LIMIT 10`
-    ).rows;
+    );
+    const bestPlayScoresSingle = res1.rows;
 
-    const bestWordScores = await db.query(
+    const res2 = await db.query(
       `SELECT p.id AS "playId",
               u.username,
               p.play_time AS "playTime",
@@ -47,9 +48,10 @@ class Leaderboard {
            ON p.user_id = u.id
        ORDER BY best_word_score DESC
        LIMIT 10`
-    ).rows;
+    );
+    const bestWordScores = res2.rows;
 
-    const bestCurrent10Wma = await db.query(
+    const res3 = await db.query(
       `SELECT id,
               username,
               curr_10_wma AS "curr10Wma"
@@ -57,9 +59,10 @@ class Leaderboard {
        WHERE last_play_single >= NOW() - INTERVAL '60 days'
        ORDER BY curr_10_wma DESC
        LIMIT 10`
-    ).rows;
+    );
+    const bestCurrent10Wma = res3.rows;
 
-    const bestCurrent100Wma = await db.query(
+    const res4 = await db.query(
       `SELECT id,
               username,
               curr_100_wma AS "curr100Wma"
@@ -67,27 +70,30 @@ class Leaderboard {
        WHERE last_play_single >= NOW() - INTERVAL '60 days'
        ORDER BY curr_100_wma DESC
        LIMIT 10`
-    ).rows;
+    );
+    const bestCurrent100Wma = res4.rows;
 
-    const bestPeak10Wma = await db.query(
+    const res5 = await db.query(
       `SELECT id,
               username,
               peak_10_wma AS "peak10Wma"
        FROM users
        ORDER BY peak_10_wma DESC
        LIMIT 10`
-    ).rows;
+    );
+    const bestPeak10Wma = res5.rows
 
-    const bestPeak100Wma = await db.query(
+    const res6 = await db.query(
       `SELECT id,
               username,
               peak_100_wma AS "peak100Wma"
        FROM users
        ORDER BY peak_100_wma DESC
        LIMIT 10`
-    ).rows;
+    );
+    const bestPeak100Wma = res6.rows;
 
-    const bestAvgWordScoreMin15 = await db.query(
+    const res7 = await db.query(
       `SELECT p.id AS "playId",
               u.username,
               p.play_time AS "playTime",
@@ -98,7 +104,8 @@ class Leaderboard {
        WHERE num_of_words > 14
        ORDER BY avg_word_score DESC
        LIMIT 10`  
-    ).rows;
+    );
+    const bestAvgWordScoreMin15 = res7.rows;
 
     const leaderboards = {
       bestAvgWordScoreMin15,
