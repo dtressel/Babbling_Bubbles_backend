@@ -10,7 +10,6 @@ const { BadRequestError } = require("../expressError");
 const Play = require("../models/play-model");
 const playAddSchema = require("../schemas/playAdd.json");
 const playSearchSchema = require("../schemas/playSearch.json");
-const playUpdateSchema = require("../schemas/playUpdate.json");
 const playsFiltersNums = [
   "userId",
   "gameType",
@@ -32,7 +31,7 @@ const playsFiltersAll = [
 
 const router = express.Router();
 
-/** GET / => { users: [ { username, firstName, lastName, email, country, dateRegistered, permissions }, ... ] }
+/** GET / => { plays: [ { play }, ... ] }
  *
  * Returns list of all plays and optionally by filter(s).
  * 
@@ -123,9 +122,9 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 /** GET /[playId] => { play }
  * 
- * Get info on user by id
+ * Get info on play by id
  *
- * Returns { id, username, email, firstName, lastName, country, dateRegistered, permissions}
+ * Returns { play }
  *
  * Authorization required: admin or same user-as-:username
  **/
@@ -140,7 +139,7 @@ router.get("/:playId", async function (req, res, next) {
 });
 
 
-/** DELETE /[playId]  =>  { deleted: username }
+/** DELETE /[playId]  =>  { deleted: playId }
  *
  * Authorization required: admin
  **/

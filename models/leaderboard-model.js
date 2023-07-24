@@ -12,7 +12,15 @@ const {
 class Leaderboard {
   /** Get all Leaderboards
    *
-   * Returns [{ id, username, first_name, last_name, email, permissions }, ...]
+   * Returns {
+   *   bestAvgWordScoreMin15: [{playId, username, playTime, avgWordScore}, {...}, ...],
+   *   bestCurrent100Wma: [{playId, username, curr100Wma}, {...}, ...],
+   *   bestCurrent10Wma: [{playId, username, curr10Wma}, {...}, ...],
+   *   bestPeak100Wma: [{playId, username, Peak100Wma}, {...}, ...],
+   *   bestPeak10Wma: [{playId, username, Peak10Wma}, {...}, ...],
+   *   bestPlayScoresSingle: [{playId, username, playTime, score}, {...}, ...],
+   *   bestWordScores: [{playId, username, playTime, bestWord, bestWordScore}, {...}, ...]
+   * }
    **/
 
   static async getAll() {

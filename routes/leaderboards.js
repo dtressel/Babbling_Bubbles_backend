@@ -7,17 +7,20 @@ const Leaderboard = require("../models/leaderboard-model");
 
 const router = express.Router();
 
-/** GET / => { leaderboards: [
- *    bestAvgWordScoreMin15,
- *    bestCurrent100Wma,
- *    bestCurrent10Wma,
- *    bestPeak100Wma,
- *    bestPeak10Wma,
- *    bestPlayScoresSingle,
- *    bestWordScores
- * ] }
+/** GET / => 
+ *  { 
+ *    leaderboards: {
+ *      bestAvgWordScoreMin15: [{playId, username, playTime, avgWordScore}, {...}, ...],
+ *      bestCurrent100Wma: [{playId, username, curr100Wma}, {...}, ...],
+ *      bestCurrent10Wma: [{playId, username, curr10Wma}, {...}, ...],
+ *      bestPeak100Wma: [{playId, username, Peak100Wma}, {...}, ...],
+ *      bestPeak10Wma: [{playId, username, Peak10Wma}, {...}, ...],
+ *      bestPlayScoresSingle: [{playId, username, playTime, score}, {...}, ...],
+ *      bestWordScores: [{playId, username, playTime, bestWord, bestWordScore}, {...}, ...]
+ *    } 
+ *  }
  *
- * Returns all leaderboards up to 10 entries.
+ * Returns all leaderboards up to 10 entries per leaderboard.
  *
  * Authorization required: none
  **/

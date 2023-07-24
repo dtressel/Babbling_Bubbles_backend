@@ -27,7 +27,7 @@ class Play {
 
   /** Find all plays optionally filtered by various filter parameters
    *
-   * Returns [{ id, username, first_name, last_name, email, permissions }, ...]
+   * Returns [{ play }, ...]
    **/
 
   static async getAll(filters) {
@@ -111,7 +111,7 @@ class Play {
 
   /** Add play with data.
    *
-   * Returns { username, firstName, lastName, email, country, permissions }
+   * Returns { avgWordScore, curr100Wma, curr10Wma, isPeak100Wma, isPeak10Wma }
    **/
 
   static async add(dataObj) {
