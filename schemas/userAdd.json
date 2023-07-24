@@ -7,9 +7,7 @@
     "required": [
         "username",
         "email",
-        "password",
-        "date_registered",
-        "permissions"
+        "password"
     ],
     "properties": {
         "username": {

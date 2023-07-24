@@ -5,16 +5,14 @@
     "default": {},
     "title": "Root Schema",
     "required": [
-        "user_id",
         "password"
     ],
     "properties": {
-        "user_id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 30
-        },
         "password": {
+            "type": "string",
+            "minLength": 8
+        },
+        "new_password": {
             "type": "string",
             "minLength": 8
         },

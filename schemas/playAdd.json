@@ -8,9 +8,7 @@
         "user_id",
         "game_type",
         "score",
-        "best_word",
-        "best_word_score",
-        "datetime"
+        "num_of_words"
     ],
     "properties": {
         "user_id": {
@@ -18,7 +16,7 @@
             "default": 0,
             "title": "The user_id Schema",
             "examples": [
-                653732
+                5342
             ]
         },
         "game_type": {
@@ -29,12 +27,44 @@
                 0
             ]
         },
+        "game_id": {
+            "type": "integer",
+            "default": 0,
+            "title": "The game_id Schema",
+            "examples": [
+                4326
+            ]
+        },
+        "play_time": {
+            "type": "string",
+            "default": "",
+            "title": "The play_time Schema",
+            "examples": [
+                "2004-10-19 10:23:54+02"
+            ]
+        },
         "score": {
             "type": "integer",
             "default": 0,
             "title": "The score Schema",
             "examples": [
-                254
+                145
+            ]
+        },
+        "num_of_words": {
+            "type": "integer",
+            "default": 0,
+            "title": "The num_of_words Schema",
+            "examples": [
+                23
+            ]
+        },
+        "avg_word_score": {
+            "type": "number",
+            "default": 0.0,
+            "title": "The avg_word_score Schema",
+            "examples": [
+                5.65
             ]
         },
         "best_word": {
@@ -42,7 +72,7 @@
             "default": "",
             "title": "The best_word Schema",
             "examples": [
-                "jalepeno"
+                "zuchini"
             ]
         },
         "best_word_score": {
@@ -50,24 +80,28 @@
             "default": 0,
             "title": "The best_word_score Schema",
             "examples": [
-                34
+                27
             ]
         },
-        "datetime": {
+        "best_word_board_state": {
             "type": "string",
             "default": "",
-            "title": "The datetime Schema",
+            "title": "The best_word_board_state Schema",
             "examples": [
-                "2023-06-23 07:34:54"
+                "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t"
             ]
         }
     },
     "examples": [{
-        "user_id": 653732,
+        "user_id": 5342,
         "game_type": 0,
-        "score": 254,
-        "best_word": "jalepeno",
-        "best_word_score": 34,
-        "datetime": "2023-06-23 07:34:54"
+        "game_id": 4326,
+        "play_time": "2004-10-19 10:23:54+02",
+        "score": 145,
+        "num_of_words": 23,
+        "avg_word_score": 5.65,
+        "best_word": "zuchini",
+        "best_word_score": 27,
+        "best_word_board_state": "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t"
     }]
 }
