@@ -27,12 +27,12 @@
             "type": "string",
             "minLength": 8
         },
-        "first_name": {
+        "firstName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 50
         },
-        "last_name": {
+        "lastName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 50
@@ -41,7 +41,7 @@
             "type": "string",
             "minLength": 1
         },
-        "date_registered": {
+        "dateRegistered": {
             "type": "string",
             "format": "date",
             "minLength": 10,
@@ -55,10 +55,10 @@
     "examples": [{
         "username": "billybob",
         "email": "billybob@gmail.com",
-        "first_name": "Billy",
-        "last_name": "Bob",
+        "firstName": "Billy",
+        "lastName": "Bob",
         "country": "Columbia",
-        "date_registered": "2023-03-21",
+        "dateRegistered": "2023-03-21",
         "permissions": "base"
     }]
 }

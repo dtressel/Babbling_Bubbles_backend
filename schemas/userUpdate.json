@@ -41,8 +41,8 @@
     },
     "examples": [{
         "email": "billybob@gmail.com",
-        "first_name": "Billy",
-        "last_name": "Bob",
+        "firstName": "Billy",
+        "lastName": "Bob",
         "country": "Columbia"
     }]
 }

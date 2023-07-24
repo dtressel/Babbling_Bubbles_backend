@@ -7,124 +7,124 @@
     "required": [],
     "additionalProperties": false,
     "properties": {
-        "user_id": {
+        "userId": {
             "type": "integer",
             "default": 0,
-            "title": "The user_id Schema",
+            "title": "The userId Schema",
             "examples": [
                 5342
             ]
         },
-        "game_type": {
+        "gameType": {
             "type": "integer",
             "default": 0,
-            "title": "The game_type Schema",
+            "title": "The gameType Schema",
             "examples": [
                 0
             ]
         },
-        "oldest_date": {
+        "oldestDate": {
             "type": "string",
             "default": "",
-            "title": "The oldest_date Schema",
+            "title": "The oldestDate Schema",
             "examples": [
                 "2004-10-19"
             ]
         },
-        "newest_date": {
+        "newestDate": {
             "type": "string",
             "default": "",
-            "title": "The newest_date Schema",
+            "title": "The newestDate Schema",
             "examples": [
                 "2009-10-19"
             ]
         },
-        "min_score": {
+        "minScore": {
             "type": "integer",
             "default": 0,
-            "title": "The min_score Schema",
+            "title": "The minScore Schema",
             "examples": [
                 20
             ]
         },
-        "max_score": {
+        "maxScore": {
             "type": "integer",
             "default": 0,
-            "title": "The max_score Schema",
+            "title": "The maxScore Schema",
             "examples": [
                 50
             ]
         },
-        "min_num_of_words": {
+        "minNumOfWords": {
             "type": "integer",
             "default": 0,
-            "title": "The min_num_of_words Schema",
+            "title": "The minNumOfWords Schema",
             "examples": [
                 15
             ]
         },
-        "max_num_of_words": {
+        "maxNumOfWords": {
             "type": "integer",
             "default": 0,
-            "title": "The max_num_of_words Schema",
+            "title": "The maxNumOfWords Schema",
             "examples": [
                 30
             ]
         },
-        "min_avg_word_score": {
+        "minAvgWordScore": {
             "type": "number",
             "default": 0.0,
-            "title": "The min_avg_word_score Schema",
+            "title": "The minAvgWordScore Schema",
             "examples": [
                 3.45
             ]
         },
-        "max_avg_word_score": {
+        "maxAvgWordScore": {
             "type": "number",
             "default": 0.0,
-            "title": "The max_avg_word_score Schema",
+            "title": "The maxAvgWordScore Schema",
             "examples": [
                 10.23
             ]
         },
-        "best_word": {
+        "bestWord": {
             "type": "string",
             "default": "",
-            "title": "The best_word Schema",
+            "title": "The bestWord Schema",
             "examples": [
                 "eggplant"
             ]
         },
-        "min_best_word_score": {
+        "minBestWordScore": {
             "type": "integer",
             "default": 0,
-            "title": "The min_best_word_score Schema",
+            "title": "The minBestWordScore Schema",
             "examples": [
                 10
             ]
         },
-        "max_best_word_score": {
+        "maxBestWordScore": {
             "type": "integer",
             "default": 0,
-            "title": "The max_best_word_score Schema",
+            "title": "The maxBestWordScore Schema",
             "examples": [
                 50
             ]
         }
     },
     "examples": [{
-        "user_id": 5342,
-        "game_type": 0,
-        "oldest_date": "2004-10-19",
-        "newest_date": "2009-10-19",
-        "min_score": 20,
-        "max_score": 50,
-        "min_num_of_words": 15,
-        "max_num_of_words": 30,
-        "min_avg_word_score": 3.45,
-        "max_avg_word_score": 10.23,
-        "best_word": "eggplant",
-        "min_best_word_score": 10,
-        "max_best_word_score": 50
+        "userId": 5342,
+        "gameType": 0,
+        "oldestDate": "2004-10-19",
+        "newestDate": "2009-10-19",
+        "minScore": 20,
+        "maxScore": 50,
+        "minNumOfWords": 15,
+        "maxNumOfWords": 30,
+        "minAvgWordScore": 3.45,
+        "maxAvgWordScore": 10.23,
+        "bestWord": "eggplant",
+        "minBestWordScore": 10,
+        "maxBestWordScore": 50
     }]
 }
