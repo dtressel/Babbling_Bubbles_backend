@@ -24,7 +24,8 @@ class User {
   static async authenticate(username, password) {
     // try to find the user first
     const result = await db.query(
-          `SELECT username,
+          `SELECT id, 
+                  username,
                   password,
                   first_name AS "firstName",
                   last_name AS "lastName",
@@ -51,6 +52,26 @@ class User {
     throw new UnauthorizedError("Invalid username/password");
   }
 
+
+  /** Checks for correct password input for logged in user who is updating profile or password
+   *
+   * Throws UnauthorizedError if password incorrect
+   *
+   * If password is correct, no error, and returns undefined
+   **/
+  static async checkIfCorrectPassword(userId, password) {
+    // query user hashed password using userId
+    const storedHashedPassword = await db.query(
+        `SELECT password
+         FROM users
+         WHERE user_id = $1`,
+      [userId]
+    ).rows[0].password;
+    // check if password is correct, and if not, throw error
+    if (!await bcrypt.compare(password, storedHashedPassword)) {
+      throw new UnauthorizedError("Invalid password");
+    }
+  }
 
 
   /** Register user with data.
