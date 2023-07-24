@@ -56,21 +56,22 @@ class Play {
   /* 
   * create an array of WHERE clauses for getAll and getAllAdmin methods
   **/
-  static async buildWhereClauses(filters) {
+//  **********************************************************use sql for partial update instead of this****************************
+  static buildWhereClauses(filters) {
     const whereClauses = [];
     for (const filter in filters) {
       const first3Letters = filter.slice(0, 3);
       if (["min", "old"].includes(first3Letters)) {
-        whereClauses.push(`${filter} >= ${filters[filter]}`);
+        whereClauses.push(`${this.filterKey[filter]} >= ${filters[filter]}`);
       } 
       else if (["max", "new"].includes(first3Letters)) {
-        whereClauses.push(`${filter} <= ${filters[filter]}`);
+        whereClauses.push(`${this.filterKey[filter]} <= ${filters[filter]}`);
       }
       else if (filter === "bestWord") {
-        whereClauses.push(`UPPER(${filter}) LIKE UPPER('%${filters[filter]}%')`);
+        whereClauses.push(`UPPER(${this.filterKey[filter]}) LIKE UPPER('%${filters[filter]}%')`);
       }
       else {
-        whereClauses.push(`${filter} = ${filters[filter]}`);
+        whereClauses.push(`${this.filterKey[filter]} = ${filters[filter]}`);
       }
     }
     return whereClauses;
