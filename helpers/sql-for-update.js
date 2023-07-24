@@ -51,4 +51,4 @@ function combineWhereClauses(clauseArray) {
   return whereString;
 }
 
-module.exports = { sqlForPartialUpdate };
+module.exports = { sqlForPartialUpdate, combineWhereClauses };
