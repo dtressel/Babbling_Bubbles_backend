@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
+const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const Play = require("../models/play-model");
 const playAddSchema = require("../schemas/playAdd.json");

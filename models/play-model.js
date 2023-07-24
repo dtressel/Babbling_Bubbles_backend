@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { sqlForPartialUpdate, combineWhereClauses } = require("../helpers/sql");
+const { sqlForPartialUpdate, combineWhereClauses } = require("../helpers/sql-for-update");
 const {
   NotFoundError,
   BadRequestError,
