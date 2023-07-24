@@ -145,7 +145,7 @@ router.get("/:playId", async function (req, res, next) {
 
 router.delete("/:playId", ensureAdmin, async function (req, res, next) {
   try {
-    await User.remove(req.params.playId);
+    await Play.remove(req.params.playId);
     return res.json({ deleted: req.params.playId });
   } catch (err) {
     return next(err);
