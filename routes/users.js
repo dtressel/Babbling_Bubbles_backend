@@ -10,7 +10,7 @@ const { BadRequestError } = require("../expressError");
 const User = require("../models/user-model");
 const { createToken } = require("../helpers/tokens");
 const userUpdateSchema = require("../schemas/userUpdate.json");
-const usernameUpdateSchema = require("../schemas/usernameUpdate.json");
+const userUpdateSpecialSchema = require("../schemas/userUpdateSpecial.json");
 const userAddSchema = require("../schemas/userAdd.json");
 
 const router = express.Router();
@@ -118,7 +118,8 @@ router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, nex
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-
+    // Check if password is correct, if not, will throw error
+    await User.checkIfCorrectPassword(req.params.userId, req.body.password);
     const user = await User.update(req.params.userId, req.body);
     return res.json({ user });
   } catch (err) {
@@ -143,7 +144,7 @@ router.delete("/:userId", ensureCorrectUserOrAdmin, async function (req, res, ne
 /** PATCH /[userId]/special { user } => { user }
  *
  * Data can include:
- *   { username, permissions }
+ *   { username, password, email, first_name, last_name, country, permissions }
  *
  * Returns { id, username, email, firstName, lastName, country, permissions }
  *
@@ -152,7 +153,7 @@ router.delete("/:userId", ensureCorrectUserOrAdmin, async function (req, res, ne
 
 router.patch("/:userId/special", ensureAdmin, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, usernameUpdateSchema);
+    const validator = jsonschema.validate(req.body, userUpdateSpecialSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
