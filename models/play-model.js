@@ -223,7 +223,6 @@ class Play {
                 [baseInfo.userId]
               );
               const tenthAndEleventh = tenthAndEleventhRes.rows;
-              console.log(tenthAndEleventh);
 
               // replace user's old tenth best score with new tenth best 
               userUpdates[`tenth_best_${stat}`] = tenthAndEleventh[0][stat];
@@ -276,7 +275,6 @@ class Play {
             }
           }
         }
-        console.log('got to end of wmastoCalc');
       }
     }
 
