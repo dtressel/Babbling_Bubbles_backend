@@ -51,4 +51,71 @@ function combineWhereClauses(clauseArray) {
   return whereString;
 }
 
-module.exports = { sqlForPartialUpdate, combineWhereClauses };
+/** Creates an insert query from provided data
+ * 
+ * Parameters: 1. name of table to insert into,
+ *             2. data obj { <columnName>: <value>, ... },
+ *             3. columns key that translates given key in data obj to 
+ *                expected SQL column name (optional)
+ * 
+ * Returns: { sqlStatement, valuesArray }
+ * 
+ *  */ 
+
+function createInsertQuery(tableName, data, columnsJsToSqlKey = {}) {
+  const keysArray = [...Object.keys(data)];
+  const numOfDataItems = keysArray.length;
+  if (!numOfDataItems) return;
+  const columnList = keysArray.slice(1).reduce((accum, curr) => {
+    return accum + `, ${columnsJsToSqlKey[curr] || curr}`;
+  }, columnsJsToSqlKey[keysArray[0]] || keysArray[0]);
+  let valuesList = '$1';
+  for (let i = 2; i <= numOfDataItems; i++) {
+    valuesList += `, $${i}`;
+  }
+  const sqlStatement = `INSERT INTO ${tableName} (${columnList}) VALUES (${valuesList})`;
+  const valuesArray = keysArray.map(key => data[key]);
+  return { sqlStatement, valuesArray };
+}
+
+/** Creates an update query from provided data
+ * 
+ * Parameters: 1. name of table to insert into,
+ *             2. data obj { <columnName>: <value>, ... },
+ *             3. whereClause Array [[column, operand (= or <, etc.), value], [...], ...],
+ *             4. WhereConjunction - AND or OR (this function cannot combine ANDs and ORs)
+ *                (optional, defaults to AND),
+ *             5. columns key that translates given key in data obj to 
+ *                expected SQL column name (optional)
+ * 
+ * Returns: { sqlStatement, valuesArray }
+ * 
+ *  */ 
+
+function createUpdateQuery(tableName, data, whereClauseArray, WhereConjunction = 'AND', columnsJsToSqlKey = {}) {
+  const keysArray = [...Object.keys(data)];
+  const numOfDataItems = keysArray.length;
+  if (!numOfDataItems) return;
+  // subtractor for special values that don't require $<num> notation
+  let s = 0;
+  const keysArrayIdxsToDelete = [];
+  const setStatement = keysArray.reduce((accum, curr, idx) => {
+    if (data[curr] === "CURRENT_DATE") {
+      s++;
+      keysArrayIdxsToDelete.push(idx);
+      return accum + `, ${columnsJsToSqlKey[curr] || curr} = ${data[curr]}`;
+    }
+    return accum + `, ${columnsJsToSqlKey[curr] || curr} = $${idx + 1 - s}`;
+  }, '').slice(2);
+  for (const idx of keysArrayIdxsToDelete) {
+    keysArray.splice(idx, 1);
+  }
+  const whereStatement = whereClauseArray.slice(1).reduce((accum, curr, idx) => {
+    return accum + `${WhereConjunction} ${curr[0]} ${curr[1]} $${idx + numOfDataItems + 2 - s}`;
+  }, `${whereClauseArray[0][0]} ${whereClauseArray[0][1]} $${numOfDataItems + 1 - s}`);
+  const sqlStatement = `Update ${tableName} SET ${setStatement} WHERE ${whereStatement}`;
+  const valuesArray = [...keysArray.map(key => data[key]), ...whereClauseArray.map(arr => arr[2])];
+  return { sqlStatement, valuesArray };
+}
+
+module.exports = { sqlForPartialUpdate, combineWhereClauses, createInsertQuery, createUpdateQuery };
