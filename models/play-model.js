@@ -1,12 +1,8 @@
 "use strict";
 
 const db = require("../db");
-const { sqlForPartialUpdate, combineWhereClauses } = require("../helpers/sql-for-update");
-const {
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError,
-} = require("../expressError");
+const { combineWhereClauses, createInsertQuery, createUpdateQuery } = require("../helpers/sql-for-update");
+const { NotFoundError } = require("../expressError");
 
 /** Related functions for plays. */
 
@@ -23,6 +19,17 @@ class Play {
     bestWord: "best_word",
     minBestWordScore: "best_word_score",
     maxBestWordScore: "best_word_score"
+  }
+
+  static columnsJsToSqlKey = {
+    userId: 'user_id',
+    gameType: 'game_type',
+    gameId: 'game_id',
+    numOfWords: 'num_of_words',
+    avgWordScore: 'avg_word_score',
+    bestWord: 'best_word',
+    bestWordScore: 'best_word_score',
+    bestWordBoardState: 'best_word_board_state'
   }
 
   /** Find all plays optionally filtered by various filter parameters
@@ -56,7 +63,7 @@ class Play {
   /* 
   * create an array of WHERE clauses for getAll and getAllAdmin methods
   **/
-//  **********************************************************use sql for partial update instead of this****************************
+  //  **********************************************************use sql for partial update instead of this****************************
   static buildWhereClauses(filters) {
     const whereClauses = [];
     for (const filter in filters) {
@@ -115,119 +122,198 @@ class Play {
    * Returns { avgWordScore, curr100Wma, curr10Wma, isPeak100Wma, isPeak10Wma }
    **/
 
-  static async add(dataObj) {
+  static async add({ baseInfo, extraStats }) {
     // calculate avg word score based on score and numOfWords
-    dataObj.avgWordScore = (Math.round(dataObj.score / dataObj.numOfWords * 100) / 100);
-    // ***************************************************use sql for partial update for this************************************************
-    // ****************************************so that it doesn't try to force a null value for gameType*************************************
-    const itemsToInsert = [
-      "userId",
-      "gameType",
-      "gameId",
-      "score",
-      "numOfWords",
-      "avgWordScore",
-      "bestWord",
-      "bestWordScore",
-      "bestWordBoardState"
-    ];
-    // create an array of the values in the order used in query
-    const valueArray = itemsToInsert.map(item => {
-      return dataObj[item] !== undefined ? dataObj[item] : null;
-    });
+    baseInfo.avgWordScore = (Math.round(baseInfo.score / baseInfo.numOfWords * 100) / 100);
 
-    await db.query(
-          `INSERT INTO plays (user_id,
-                              game_type,
-                              game_id,
-                              score,
-                              num_of_words,
-                              avg_word_score,
-                              best_word,
-                              best_word_score,
-                              best_word_board_state)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        valueArray
-    );
+    // Important Variables:
+    // create userInfo variable to store relevant user info for calculating updates
+    let userInfo;
+    // create userUpdates obj to store updates for final update query
+    const userUpdates = {};
+    // create an array to store play ids that need to be deleted
+    const playIdsToDelete = [];
+    // create stats object to return to frontend for game over popup
+    const statsToReturn = {
+      avgWordScore: baseInfo.avgWordScore
+    }
 
-    // update users table values related to play results
-    if (dataObj.gameType === 0 || dataObj.gameType === undefined) {
-      // update last_play_single
-      await db.query(
-          `UPDATE users 
-           SET last_play_single = CURRENT_DATE
-           WHERE id = $1`,
-        [dataObj.userId]
-      );
+    // insert new play into database
+    const playInsertQuery = createInsertQuery('plays', baseInfo, this.columnsJsToSqlKey);
+    await db.query(playInsertQuery.sqlStatement, playInsertQuery.valuesArray);
 
-      // update wmas
-      // wmasToCalc should be ordered largest to smallest
+    // update database with info relevant to single plays
+    if (baseInfo.gameType === 0 || baseInfo.gameType === undefined) {
+      // add update to last play single
+      userUpdates.last_play_single = 'CURRENT_DATE';
+      // wmas to be calculated ordered largest to smallest
       const wmasToCalc = [100, 10];
-      // get recent scores including just inserted for calculation
-      const res1 = await db.query(
-         `SELECT score
-          FROM plays
-          WHERE user_id = $1
-          ORDER BY id DESC
-          LIMIT $2`,
-        [dataObj.userId, wmasToCalc[0]]
-      );
-      const lastSingleScores = res1.rows;
+      const peakWmasToSelect = wmasToCalc.slice(1).reduce((accum, curr) => {
+        return accum + `, peak_${curr}_wma`;
+      }, `peak_${wmasToCalc[0]}_wma`);
 
-      const stats = {
-        avgWordScore: dataObj.avgWordScore
-      }
+      // get relevant user info
+      const userInfoRes = await db.query(
+          `SELECT ${peakWmasToSelect},
+                  longest_word_score,
+                  craziest_word_score,
+                  tenth_best_score,
+                  tenth_best_avg_word_score,
+                  tenth_best_best_word_score
+           FROM users
+           WHERE id = $1`,
+        [baseInfo.userId]
+      );
+      userInfo = userInfoRes.rows[0];
+
+      // get recent single scores for calculating wmas
+      const recentScoresRes = await db.query(
+          `SELECT id, score
+           FROM plays
+           WHERE user_id = $1
+           ORDER BY id DESC
+           LIMIT $2`,
+        [baseInfo.userId, wmasToCalc[0] + 1]
+      );
+      const recentScores = recentScoresRes.rows;
 
       // if there are enough scores to calculate any of the wmas, continue
-      if (lastSingleScores.length >= wmasToCalc.slice(-1)[0]) {
-        const calculatedWmas = wmasToCalc.map((wma) => {
-          if (lastSingleScores.length >= wma) {
-            const wmaNumerator = lastSingleScores.slice(0, wma).reduce((accum, curr, idx) => {
-              return accum + curr.score * (wma - idx);
-            }, 0);
-            const wmaDenominator = (wma * (wma + 1)) / 2;
-            const wmaCalculation = wmaNumerator / wmaDenominator;
-            const wmaCalculationRounded = Math.round(wmaCalculation * 100) / 100;
-            return wmaCalculationRounded;
-          } 
-          else return null;
-        });
-        const res2 = await db.query(
-           `UPDATE users
-            SET curr_100_wma = $1, curr_10_wma = $2
-            WHERE id = $3
-            RETURNING peak_10_wma AS "peak10Wma",
-                      peak_100_wma AS "peak100Wma"`,
-          [
-            calculatedWmas[0],
-            calculatedWmas[1],
-            dataObj.userId
-          ]
-        );
-        const formerPeakWmas = res2.rows[0];
-        if (formerPeakWmas.peak100Wma < calculatedWmas[0] || formerPeakWmas.peak10Wma < calculatedWmas[1]) {
-          await db.query(
-             `UPDATE users
-              SET peak_100_wma = $1, peak_10_wma = $2
-              WHERE id = $3`,
-            [
-              calculatedWmas[0] === null ? null : Math.max(formerPeakWmas.peak100Wma, calculatedWmas[0]),
-              calculatedWmas[1] === null ? null : Math.max(formerPeakWmas.peak10Wma, calculatedWmas[1]),
-              dataObj.userId
-            ]
-          );
+      if (recentScores.length >= wmasToCalc.slice(-1)[0]) {
+        // calculate all wmas with enough records and add to userUpdates
+        for (const wma of wmasToCalc) {
+          if (recentScores.length < wma) continue;
+          const wmaNumerator = recentScores.slice(0, wma).reduce((accum, curr, idx) => {
+            return accum + curr.score * (wma - idx);
+          }, 0);
+          const wmaDenominator = (wma * (wma + 1)) / 2;
+          const wmaCalculation = wmaNumerator / wmaDenominator;
+          const wmaCalculationRounded = Math.round(wmaCalculation * 100) / 100;
+          userUpdates[`curr_${wma}_wma`] = wmaCalculationRounded;
+          statsToReturn[`curr${wma}Wma`] = wmaCalculationRounded;
         }
-        stats.curr100Wma = calculatedWmas[0];
-        stats.curr10Wma = calculatedWmas[1];
-        stats.isPeak100Wma = calculatedWmas[0] > formerPeakWmas.peak100Wma;
-        stats.isPeak10Wma = calculatedWmas[1] > formerPeakWmas.peak10Wma;
+
+        // check for new peak wmas and add peak wmas to userUpdates if needs updating
+        for (const wma of wmasToCalc) {
+          if (userUpdates[`curr_${wma}_wma`] > userInfo[`peak_${wma}_wma`]) {
+            userUpdates[`peak_${wma}_wma`] = userUpdates[`curr_${wma}_wma`];
+            statsToReturn[`isPeak${wma}Wma`] = true;
+          }
+        }
+
+        // check tenth bests, update tenth best in plays,
+        // and add new elevenths to playIdsToDelete if not needed anymore
+        if (recentScores.length >= 10) {
+          const statsForCheck10th = ['score', 'avg_word_score', 'best_word_score'];
+          const selectRowsStr = statsForCheck10th.reduce((accum, curr) => {
+            return accum + `, ${curr}`;
+          });
+
+          // for each stat
+          for (const stat of statsForCheck10th) {
+            // check if play result is better than user's tenth best
+            if (baseInfo.score > userInfo[`tenth_best_${stat}`]) {
+              // if so, get tenth and eleventh best
+              const tenthAndEleventhRes = await db.query(
+                  `SELECT id, ${selectRowsStr}
+                   FROM plays
+                   WHERE user_id = $1
+                   ORDER BY ${stat} DESC
+                   LIMIT 2
+                   OFFSET 9`,
+                [baseInfo.userId]
+              );
+              const tenthAndEleventh = tenthAndEleventhRes.rows;
+              console.log(tenthAndEleventh);
+
+              // replace user's old tenth best score with new tenth best 
+              userUpdates[`tenth_best_${stat}`] = tenthAndEleventh[0][stat];
+
+              // check if 11th is no longer needed, if so, delete
+              let deleteEleventh = true;
+              // if you find this eleventh play in recent 101 games, then don't delete
+              if (recentScores.find(row => row.id === tenthAndEleventh[1].id)) {
+                deleteEleventh = false;
+              }
+              // otherwise check if needed for other best stats
+              else {
+                for (const stat of statsForCheck10th) {
+                  if (tenthAndEleventh[1][stat] > userInfo[`tenth_best_${stat}`]) {
+                    deleteEleventh = false;
+                    break;
+                  }
+                }
+              }
+
+              // if we can delete it, push id into delete array
+              if (deleteEleventh) {
+                playIdsToDelete.push(tenthAndEleventh[1].id);
+              }
+            }
+          }
+
+          // check if 101st play is needed, if not, delete
+          // get play information for 101st play
+          if (recentScores.length >= 101) {
+            const _101stPlayRes = await db.query(
+                 `SELECT ${selectRowsStr}
+                  FROM plays
+                  WHERE user_id = $1`,
+              [recentScores[100].id] 
+            );
+            const _101stPlay = _101stPlayRes.rows[0];
+
+            // check if 101st is one of the tenth best of other stats
+            let delete101st = true;
+            for (const stat of statsForCheck10th) {
+              if (_101stPlay[stat] > userInfo[`tenth_best_${stat}`]) {
+                delete101st = false;
+                break;
+              }
+            }
+            // if we can delete it, push id into delete array
+            if (delete101st) {
+              playIdsToDelete.push(recentScores[100].id);
+            }
+          }
+        }
+        console.log('got to end of wmastoCalc');
       }
-
-      return stats;
     }
-    return;
-  }
 
+    // process extra stats
+    const extraStatsToProcess = {longestWord: "longest_word", craziestWord: 'craziest_word'};
+    for (const stat in extraStatsToProcess) {
+      // if the just played stat is better than the stored stat
+      if (extraStats[`${stat}Score`] > userInfo[`${extraStatsToProcess[stat]}_score`]) {
+        // store the superior newly played stat values in user updates
+        userUpdates[extraStatsToProcess[stat]] = extraStats[stat];
+        userUpdates[`${extraStatsToProcess[stat]}_score`] = extraStats[`${stat}Score`];
+      }
+    }
+
+    // apply updates to user
+    if (Object.keys(userUpdates).length) {
+      const updateQuery = createUpdateQuery('users', userUpdates, [["id", "=", baseInfo.userId]]);
+      await db.query(updateQuery.sqlStatement, updateQuery.valuesArray);
+    }
+
+    // remove any duplicates from playIdsToDelete
+    const uniquePlayIdsToDelete = [...new Set(playIdsToDelete)];
+    // delete plays from playIdsToDelete
+    const numofIdsToDelete = uniquePlayIdsToDelete.length;
+    if (numofIdsToDelete) {
+      let inList = '$1';
+      for (let i = 2; i <= numofIdsToDelete; i++) {
+        inList += `, $${i}`;
+      }
+      await db.query(
+           `DELETE FROM plays
+            WHERE id IN (${inList})`,
+        uniquePlayIdsToDelete
+      );
+    }
+    return statsToReturn;
+  }
 
   /** Delete given play from database; returns undefined. */
 

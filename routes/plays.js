@@ -85,14 +85,24 @@ router.get("/", async function (req, res, next) {
  * 
  * Provide the following play obj:
  * {
- *   userId,
- *   gameType,
- *   gameId (optional),
- *   score,
- *   numOfWords,
- *   bestWord,
- *   bestWordScore,
- *   bestWordBoardState
+ *   baseInfo: {
+ *     userId,
+ *     gameType,
+ *     gameId (optional),
+ *     score,
+ *     numOfWords,
+ *     bestWord,
+ *     bestWordScore,
+ *     bestWordBoardState,
+ *   },
+ *   extraStats: {
+ *     craziestWord,
+ *     craziestWordScore,
+ *     craziestWordBoardState,
+ *     longestWord,
+ *     longestWordScore,
+ *     longestWordBoardState
+ *   }
  * }
  *
  * This returns newly calculated play stats and user stats:
@@ -110,7 +120,6 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-
     const stats = await Play.add(req.body);
     return res.status(201).json({ stats });
   } catch (err) {
