@@ -5,11 +5,11 @@
     "default": {},
     "title": "Root Schema",
     "required": [
-        "password"
+        "currPassword"
     ],
     "additionalProperties": false,
     "properties": {
-        "password": {
+        "currPassword": {
             "type": "string",
             "minLength": 8
         },
@@ -40,6 +40,7 @@
         }
     },
     "examples": [{
+        "currPassword": "fgreY$26",
         "email": "billybob@gmail.com",
         "firstName": "Billy",
         "lastName": "Bob",

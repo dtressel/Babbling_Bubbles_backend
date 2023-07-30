@@ -31,7 +31,6 @@ class User {
                   last_name AS "lastName",
                   email,
                   country,
-                  date_registered AS "dateRegistered",
                   permissions
            FROM users
            WHERE username = $1`,
@@ -133,7 +132,6 @@ class User {
                      last_name AS "lastName",
                      email,
                      country,
-                     date_registered AS "dateRegistered",
                      permissions`,
         [
           username,
@@ -245,7 +243,6 @@ class User {
                   last_name AS "lastName",
                   email,
                   country,
-                  date_registered AS "dateRegistered",
                   permissions
            FROM users
            WHERE ${identifierType} = $1`,
@@ -279,8 +276,8 @@ class User {
    */
 
   static async update(userId, data) {
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, BCRYPT_WORK_FACTOR);
+    if (data.newPassword) {
+      data.newPassword = await bcrypt.hash(data.newPassword, BCRYPT_WORK_FACTOR);
     }
 
     const { setCols, values } = sqlForPartialUpdate(
@@ -288,6 +285,7 @@ class User {
         {
           firstName: "first_name",
           lastName: "last_name",
+          newPassword: "password"
         });
     const idVarIdx = "$" + (values.length + 1);
 
@@ -305,7 +303,6 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${userId}`);
 
-    delete user.password;
     return user;
   }
 

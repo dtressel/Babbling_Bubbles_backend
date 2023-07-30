@@ -72,7 +72,7 @@ router.get("/", async function (req, res, next) {
  * 
  * Get info on user by id
  *
- * Returns { id, username, email, firstName, lastName, country, dateRegistered, permissions}
+ * Returns { user: { id, username, email, firstName, lastName, country, permissions } }
  *
  * Authorization required: admin or same user-as-:username
  **/
@@ -90,7 +90,7 @@ router.get("/:userId", async function (req, res, next) {
  * 
  * Get info on user by username
  *
- * Returns { id, username, email, firstName, lastName, country, dateRegistered, permissions}
+ * Returns { user: { id, username, email, firstName, lastName, country, permissions } }
  *
  * Authorization required: admin
  **/
@@ -107,9 +107,9 @@ router.get("/:username/username", async function (req, res, next) {
 /** PATCH /[userId] { user } => { user }
  *
  * Data can include:
- *   { email, firstName, lastName, country, password }
+ *   { email, firstName, lastName, country, newPasssword, currPassword (for additional verification, required) }
  *
- * Returns { id, username, email, firstName, lastName, country, permissions }
+ * Returns { user: { id, username, email, firstName, lastName, country, permissions } }
  *
  * Authorization required: same-user-as-:username
  **/
@@ -122,7 +122,8 @@ router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, nex
       throw new BadRequestError(errs);
     }
     // Check if password is correct, if not, will throw error
-    await User.checkIfCorrectPassword(req.params.userId, req.body.password);
+    await User.checkIfCorrectPassword(req.params.userId, req.body.currPassword);
+    delete req.body.currPassword;
     const user = await User.update(req.params.userId, req.body);
     return res.json({ user });
   } catch (err) {
