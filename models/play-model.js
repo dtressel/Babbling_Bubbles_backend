@@ -155,6 +155,7 @@ class Play {
       // get relevant user info
       const userInfoRes = await db.query(
           `SELECT ${peakWmasToSelect},
+                  num_of_plays_single,
                   longest_word_score,
                   craziest_word_score,
                   tenth_best_score,
@@ -199,6 +200,9 @@ class Play {
             statsToReturn[`isPeak${wma}Wma`] = true;
           }
         }
+
+        // increment numOfPlaysSingle and add to userUpdates
+        userUpdates.num_of_plays_single = userInfo.num_of_plays_single++;
 
         // check tenth bests, update tenth best in plays,
         // and add new elevenths to playIdsToDelete if not needed anymore
