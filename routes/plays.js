@@ -8,7 +8,9 @@ const express = require("express");
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const Play = require("../models/play-model");
-const playAddSchema = require("../schemas/playAdd.json");
+const playAddFullSchema = require("../schemas/playAddFull.json");
+const playAddStartSchema = require("../schemas/playAddStart.json");
+const playPatchSchema = require("../schemas/playPatch.json");
 const playSearchSchema = require("../schemas/playSearch.json");
 const playsFiltersNums = [
   "userId",
@@ -81,19 +83,50 @@ router.get("/", async function (req, res, next) {
 
 /** POST / { play }  => { play }
  *
- * Adds a new play and updates wmas and last_play_single in users data for user
+ * Adds a new play when a user starts a new game
+ * This prevents the user from closing the browser to avoid posting the score of a bad game
+ * At the completion of the game this play will be updated with full stats
+ * Also updates last_play_single and num_of_games_played in users data for user
+ * 
+ * Provide the following play obj:
+ * {
+ *   userId,
+ *   gameType (optional, default = 0),
+ *   gameId (optional)
+ * }
+ *
+ * This returns playId to allow easy update after play is complete
+ *
+ * Authorization required: logged in
+ **/
+
+router.post("/", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const validator = jsonschema.validate(req.body, playAddStartSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    const playId = await Play.addAtStartGame(req.body);
+    return res.status(201).json({ playId });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+/** PATCH /[playId] { play }  => { play }
+ *
+ * Updates the play at the completion of a game with full stats
  * 
  * Provide the following play obj:
  * {
  *   baseInfo: {
- *     userId,
- *     gameType,
- *     gameId (optional),
  *     score,
  *     numOfWords,
  *     bestWord,
  *     bestWordScore,
- *     bestWordBoardState,
+ *     bestWordBoardState
  *   },
  *   extraStats: {
  *     craziestWord,
@@ -113,19 +146,70 @@ router.get("/", async function (req, res, next) {
  * Authorization required: logged in
  **/
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, playAddSchema);
+    const validator = jsonschema.validate(req.body, playPatchSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.add(req.body);
+    const stats = await Play.updateAtGameOver({ playId: req.params.playId, ...req.body });
     return res.status(201).json({ stats });
   } catch (err) {
     return next(err);
   }
 });
+
+
+/** POST / { play }  => { play }
+ *
+ * Allows an admin to post a full play
+ * 
+ * Provide the following play obj:
+ * {
+ *   baseInfo: {
+ *     userId,
+ *     gameType,
+ *     gameId (optional),
+ *     score,
+ *     numOfWords,
+ *     bestWord,
+ *     bestWordScore,
+ *     bestWordBoardState
+ *   },
+ *   extraStats: {
+ *     craziestWord,
+ *     craziestWordScore,
+ *     craziestWordBoardState,
+ *     longestWord,
+ *     longestWordScore,
+ *     longestWordBoardState
+ *   }
+ * }
+ *
+ * This returns newly calculated play stats and user stats:
+ *  {
+ *    stats: avgWordScore, curr100Wma, curr10Wma, isPeak100Wma, isPeak10Wma
+ *  }
+ *
+ * Authorization required: logged in
+ **/
+
+router.post("/full", ensureAdmin, async function (req, res, next) {
+  try {
+    const validator = jsonschema.validate(req.body, playAddFullSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    const stats = await Play.addFull(req.body);
+    return res.status(201).json({ stats });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
 
 
 /** GET /[playId] => { play }
