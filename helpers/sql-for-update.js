@@ -92,7 +92,7 @@ function createInsertQuery(tableName, data, columnsJsToSqlKey = {}) {
  * 
  *  */ 
 
-function createUpdateQuery(tableName, data, whereClauseArray, WhereConjunction = 'AND', columnsJsToSqlKey = {}) {
+function createUpdateQuery(tableName, data, whereClauseArray, columnsJsToSqlKey = {}, WhereConjunction = 'AND') {
   const keysArray = [...Object.keys(data)];
   const numOfDataItems = keysArray.length;
   if (!numOfDataItems) return;
@@ -100,7 +100,7 @@ function createUpdateQuery(tableName, data, whereClauseArray, WhereConjunction =
   let s = 0;
   const keysArrayIdxsToDelete = [];
   const setStatement = keysArray.reduce((accum, curr, idx) => {
-    if (data[curr] === "CURRENT_DATE") {
+    if (data[curr] === "CURRENT_DATE" || data[curr] === "num_of_plays_single + 1") {
       s++;
       keysArrayIdxsToDelete.push(idx);
       return accum + `, ${columnsJsToSqlKey[curr] || curr} = ${data[curr]}`;
