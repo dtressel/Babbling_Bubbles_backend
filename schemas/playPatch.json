@@ -1,0 +1,152 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "default": {},
+    "title": "Root Schema",
+    "required": [
+        "baseInfo",
+        "extraStats"
+    ],
+    "properties": {
+        "baseInfo": {
+            "type": "object",
+            "default": {},
+            "title": "The baseInfo Schema",
+            "required": [
+                "score",
+                "numOfWords"
+            ],
+            "properties": {
+                "score": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The score Schema",
+                    "examples": [
+                        167
+                    ]
+                },
+                "numOfWords": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The numOfWords Schema",
+                    "examples": [
+                        34
+                    ]
+                },
+                "bestWord": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The bestWord Schema",
+                    "examples": [
+                        "pineapple"
+                    ]
+                },
+                "bestWordScore": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The bestWordScore Schema",
+                    "examples": [
+                        31
+                    ]
+                },
+                "bestWordBoardState": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The bestWordBoardState Schema",
+                    "examples": [
+                        "ABcDefghijklmnopqrst122"
+                    ]
+                }
+            },
+            "examples": [{
+                "score": 167,
+                "numOfWords": 34,
+                "bestWord": "pineapple",
+                "bestWordScore": 31,
+                "bestWordBoardState": "ABcDefghijklmnopqrst122"
+            }]
+        },
+        "extraStats": {
+            "type": "object",
+            "default": {},
+            "title": "The extraStats Schema",
+            "required": [],
+            "properties": {
+                "craziestWord": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The craziestWord Schema",
+                    "examples": [
+                        "nymph"
+                    ]
+                },
+                "craziestWordScore": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The craziestWordScore Schema",
+                    "examples": [
+                        18
+                    ]
+                },
+                "craziestWordBoardState": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The craziestWordBoardState Schema",
+                    "examples": [
+                        "ABcDefghijklmnopqrst122"
+                    ]
+                },
+                "longestWord": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The longestWord Schema",
+                    "examples": [
+                        "pineapple"
+                    ]
+                },
+                "longestWordScore": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The longestWordScore Schema",
+                    "examples": [
+                        9031
+                    ]
+                },
+                "longestWordBoardState": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The longestWordBoardState Schema",
+                    "examples": [
+                        "ABcDefghijklmnopqrst122"
+                    ]
+                }
+            },
+            "examples": [{
+                "craziestWord": "nymph",
+                "craziestWordScore": 18,
+                "craziestWordBoardState": "ABcDefghijklmnopqrst122",
+                "longestWord": "pineapple",
+                "longestWordScore": 9031,
+                "longestWordBoardState": "ABcDefghijklmnopqrst122"
+            }]
+        }
+    },
+    "examples": [{
+        "baseInfo": {
+            "score": 167,
+            "numOfWords": 34,
+            "bestWord": "pineapple",
+            "bestWordScore": 31,
+            "bestWordBoardState": "ABcDefghijklmnopqrst122"
+        },
+        "extraStats": {
+            "craziestWord": "nymph",
+            "craziestWordScore": 18,
+            "craziestWordBoardState": "ABcDefghijklmnopqrst122",
+            "longestWord": "pineapple",
+            "longestWordScore": 9031,
+            "longestWordBoardState": "ABcDefghijklmnopqrst122"
+        }
+    }]
+}

@@ -1,0 +1,41 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "default": {},
+    "title": "Root Schema",
+    "required": [
+        "userId"
+    ],
+    "properties": {
+        "userId": {
+            "type": "integer",
+            "default": 0,
+            "title": "The userId Schema",
+            "examples": [
+                532
+            ]
+        },
+        "gameType": {
+            "type": "integer",
+            "default": 0,
+            "title": "The gameType Schema",
+            "examples": [
+                0
+            ]
+        },
+        "gameId": {
+            "type": "integer",
+            "default": 0,
+            "title": "The gameId Schema",
+            "examples": [
+                63654
+            ]
+        }
+    },
+    "examples": [{
+        "userId": 532,
+        "gameType": 0,
+        "gameId": 63654
+    }]
+}
