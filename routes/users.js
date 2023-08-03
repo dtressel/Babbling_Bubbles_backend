@@ -90,7 +90,7 @@ router.get("/:userId", async function (req, res, next) {
  * 
  * Get info on user by username
  *
- * Returns { user: { id, username, email, firstName, lastName, country, permissions } }
+ * Returns { user: { userId, username, email, firstName, lastName, country, permissions } }
  *
  * Authorization required: admin
  **/
