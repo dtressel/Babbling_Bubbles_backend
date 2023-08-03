@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth-ware");
+const { ensureLoggedIn, ensureAdmin, ensureCorrectUserInBodyOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const Play = require("../models/play-model");
 const playAddFullSchema = require("../schemas/playAddFull.json");
@@ -100,7 +100,7 @@ router.get("/", async function (req, res, next) {
  * Authorization required: logged in
  **/
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, playAddStartSchema);
     if (!validator.valid) {
