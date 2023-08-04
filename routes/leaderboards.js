@@ -13,8 +13,8 @@ const router = express.Router();
  *      bestAvgWordScoreMin15: [{playId, username, playTime, avgWordScore}, {...}, ...],
  *      bestCurrent100Wma: [{playId, username, curr100Wma}, {...}, ...],
  *      bestCurrent10Wma: [{playId, username, curr10Wma}, {...}, ...],
- *      bestPeak100Wma: [{playId, username, Peak100Wma}, {...}, ...],
- *      bestPeak10Wma: [{playId, username, Peak10Wma}, {...}, ...],
+ *      bestPeak100Wma: [{playId, username, peak100Wma}, {...}, ...],
+ *      bestPeak10Wma: [{playId, username, peak10Wma}, {...}, ...],
  *      bestPlayScoresSingle: [{playId, username, playTime, score}, {...}, ...],
  *      bestWordScores: [{playId, username, playTime, bestWord, bestWordScore}, {...}, ...]
  *    } 
