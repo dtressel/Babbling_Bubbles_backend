@@ -231,6 +231,7 @@ class Play {
         for (const wma of wmasToCalc) {
           if (userUpdates[`curr_${wma}_wma`] > userInfo[`peak_${wma}_wma`]) {
             userUpdates[`peak_${wma}_wma`] = userUpdates[`curr_${wma}_wma`];
+            userUpdates[`peak_${wma}_wma_date`] = "CURRENT_DATE";
             statsToReturn[`isPeak${wma}Wma`] = true;
           }
         }
