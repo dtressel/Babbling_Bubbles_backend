@@ -121,7 +121,7 @@ class User {
             password,
             email,
             country)
-           VALUES ($1, $2, $3, $4, $5, $6)
+           VALUES ($1, $2, $3, $4)
            RETURNING id,
                      username,
                      email,
@@ -168,7 +168,7 @@ class User {
             email,
             country,
             permissions)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           VALUES ($1, $2, $3, $4, $5)
            RETURNING id,
                      username,
                      email,
