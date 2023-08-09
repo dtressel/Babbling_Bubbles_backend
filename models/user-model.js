@@ -27,7 +27,6 @@ class User {
           `SELECT id, 
                   username,
                   password,
-                  email,
                   country,
                   permissions
            FROM users
@@ -97,7 +96,7 @@ class User {
 
   /** Register user with data.
    *
-   * Returns { username, email, country, permissions }
+   * Returns { userId, username, country, permissions }
    *
    * Throws BadRequestError on duplicates.
    **/
@@ -124,7 +123,6 @@ class User {
            VALUES ($1, $2, $3, $4)
            RETURNING id,
                      username,
-                     email,
                      country,
                      permissions`,
         [
