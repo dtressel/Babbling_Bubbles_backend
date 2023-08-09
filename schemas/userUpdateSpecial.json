@@ -23,15 +23,9 @@
             "minLength": 6,
             "maxLength": 150
         },
-        "firstName": {
+        "bio": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 50
-        },
-        "lastName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50
+            "maxLength": 300
         },
         "country": {
             "type": "string",
@@ -47,8 +41,7 @@
         "username": "billybob",
         "password": "agEa3%fa",
         "email": "billybob@gmail.com",
-        "firstName": "Billy",
-        "lastName": "Bob",
+        "bio": "I'm a cool cat!",
         "country": "Columbia",
         "permissions": "base"
     }]

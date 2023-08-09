@@ -27,7 +27,7 @@ const router = express.Router();
  *
  * This returns the newly created user and an authentication token for them:
  *  {
- *    user: { username, email, firstName, lastName, country, dateRegistered, permissions},
+ *    user: { username, email, bio, country, dateRegistered, permissions},
  *    token: token
  *  }
  *
@@ -51,7 +51,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 });
 
 
-/** GET / => { users: [ { id, username, firstName, lastName, email, country, dateRegistered, permissions }, ... ] }
+/** GET / => { users: [ { id, username, email, bio, country, dateRegistered, permissions }, ... ] }
  *
  * Returns list of all users.
  *
@@ -72,7 +72,7 @@ router.get("/", async function (req, res, next) {
  * 
  * Get info on user by id
  *
- * Returns { user: { id, username, email, firstName, lastName, country, permissions } }
+ * Returns { user: { id, username, email, bio, country, permissions } }
  *
  * Authorization required: admin or same user-as-:username
  **/
@@ -90,7 +90,7 @@ router.get("/:userId", async function (req, res, next) {
  * 
  * Get info on user by username
  *
- * Returns { user: { userId, username, email, firstName, lastName, country, permissions } }
+ * Returns { user: { userId, username, email, bio, country, permissions } }
  *
  * Authorization required: admin
  **/
@@ -107,9 +107,9 @@ router.get("/:username/username", async function (req, res, next) {
 /** PATCH /[userId] { user } => { user }
  *
  * Data can include:
- *   { email, firstName, lastName, country, newPasssword, currPassword (for additional verification, required) }
+ *   { email, bio, country, newPasssword, currPassword (for additional verification, required) }
  *
- * Returns { user: { id, username, email, firstName, lastName, country, permissions } }
+ * Returns { user: { id, username, email, bio, country, permissions } }
  *
  * Authorization required: same-user-as-:username
  **/
@@ -186,9 +186,9 @@ router.delete("/:userId/admin", ensureAdmin, async function (req, res, next) {
 /** PATCH /[userId]/admin { user } => { user }
  *
  * Data can include:
- *   { username, password, email, first_name, last_name, country, permissions }
+ *   { username, password, email, bio, country, permissions }
  *
- * Returns { id, username, email, firstName, lastName, country, permissions }
+ * Returns { id, username, email, bio, country, permissions }
  *
  * Authorization required: admin
  **/

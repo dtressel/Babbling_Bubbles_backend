@@ -16,7 +16,7 @@ const { BCRYPT_WORK_FACTOR } = require("../config.js");
 class User {
   /** authenticate user with username, password.
    *
-   * Returns { username, first_name, last_name, email, is_admin }
+   * Returns { username, email, is_admin }
    *
    * Throws UnauthorizedError is user not found or wrong password.
    **/
@@ -27,8 +27,6 @@ class User {
           `SELECT id, 
                   username,
                   password,
-                  first_name AS "firstName",
-                  last_name AS "lastName",
                   email,
                   country,
                   permissions
@@ -99,12 +97,12 @@ class User {
 
   /** Register user with data.
    *
-   * Returns { username, firstName, lastName, email, country, permissions }
+   * Returns { username, email, country, permissions }
    *
    * Throws BadRequestError on duplicates.
    **/
 
-  static async register({ username, password, firstName, lastName, email, country }) {
+  static async register({ username, password, email, country }) {
     const duplicateCheck = await db.query(
           `SELECT username
            FROM users
@@ -121,23 +119,17 @@ class User {
           `INSERT INTO users
            (username,
             password,
-            first_name,
-            last_name,
             email,
             country)
            VALUES ($1, $2, $3, $4, $5, $6)
            RETURNING id,
                      username,
-                     first_name AS "firstName",
-                     last_name AS "lastName",
                      email,
                      country,
                      permissions`,
         [
           username,
           hashedPassword,
-          firstName,
-          lastName,
           email,
           country
         ],
@@ -151,12 +143,12 @@ class User {
 
   /** Allows an admin to add a user and set permissions at the same time.
    *
-   * Returns { username, firstName, lastName, email, country, permissions }
+   * Returns { username, email, country, permissions }
    *
    * Throws BadRequestError on duplicates.
    **/
 
-  static async add({ username, password, firstName, lastName, email, country, permissions }) {
+  static async add({ username, password, email, country, permissions }) {
     const duplicateCheck = await db.query(
           `SELECT username
            FROM users
@@ -173,16 +165,12 @@ class User {
           `INSERT INTO users
            (username,
             password,
-            first_name,
-            last_name,
             email,
             country,
             permissions)
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING id,
                      username,
-                     first_name AS "firstName",
-                     last_name AS "lastName",
                      email,
                      country,
                      date_registered AS "dateRegistered",
@@ -190,8 +178,6 @@ class User {
         [
           username,
           hashedPassword,
-          firstName,
-          lastName,
           email,
           country,
           permissions
@@ -207,15 +193,13 @@ class User {
 
   /** Find all users.
    *
-   * Returns [{ id, username, first_name, last_name, email, permissions }, ...]
+   * Returns [{ id, username, email, permissions }, ...]
    **/
 
   static async findAll() {
     const result = await db.query(
           `SELECT id,
                   username,
-                  first_name AS "firstName",
-                  last_name AS "lastName",
                   email,
                   country,
                   date_registered AS "dateRegistered",
@@ -240,8 +224,7 @@ class User {
     const userRes = await db.query(
           `SELECT id AS "userId",
                   username,
-                  first_name AS "firstName",
-                  last_name AS "lastName",
+                  bio,
                   email,
                   country,
                   permissions
@@ -265,9 +248,9 @@ class User {
    * all the fields; this only changes provided ones.
    *
    * Data can include:
-   *   { firstName, lastName, password, email, permissions }
+   *   { password, email, bio, permissions }
    *
-   * Returns { username, firstName, lastName, email, permissions }
+   * Returns { username, email, bio, permissions }
    *
    * Throws NotFoundError if not found.
    *
@@ -284,8 +267,6 @@ class User {
     const { setCols, values } = sqlForPartialUpdate(
         data,
         {
-          firstName: "first_name",
-          lastName: "last_name",
           newPassword: "password"
         });
     const idVarIdx = "$" + (values.length + 1);
@@ -295,8 +276,7 @@ class User {
                       WHERE id = ${idVarIdx} 
                       RETURNING username,
                                 email,
-                                first_name AS "firstName",
-                                last_name AS "lastName",
+                                bio,
                                 country,
                                 permissions`;
     const result = await db.query(querySql, [...values, userId]);

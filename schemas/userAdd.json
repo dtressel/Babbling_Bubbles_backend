@@ -27,15 +27,9 @@
             "type": "string",
             "minLength": 8
         },
-        "firstName": {
+        "bio": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 50
-        },
-        "lastName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50
+            "maxLength": 300
         },
         "country": {
             "type": "string",
@@ -55,8 +49,8 @@
     "examples": [{
         "username": "billybob",
         "email": "billybob@gmail.com",
-        "firstName": "Billy",
-        "lastName": "Bob",
+        "password": "Fga$4iP9",
+        "bio": "I'm a cool cat!",
         "country": "Columbia",
         "dateRegistered": "2023-03-21",
         "permissions": "base"
