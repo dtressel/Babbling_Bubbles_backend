@@ -72,7 +72,7 @@ router.get("/", async function (req, res, next) {
  * 
  * Get info on user by id
  *
- * Returns { user: { id, username, email, bio, country, permissions } }
+ * Returns { user: { <user data> } }
  *
  * Authorization required: admin or same user-as-:username
  **/
@@ -90,7 +90,7 @@ router.get("/:userId", async function (req, res, next) {
  * 
  * Get info on user by username
  *
- * Returns { user: { userId, username, email, bio, country, permissions } }
+ * Returns { user: { <user data> } }
  *
  * Authorization required: admin
  **/
@@ -103,6 +103,26 @@ router.get("/:username/username", async function (req, res, next) {
     return next(err);
   }
 });
+
+
+/** GET /[userId]/more-stats => { user }
+ * 
+ * Get info on user by id
+ *
+ * Returns { user: { <user data> } }
+ *
+ * Authorization required: admin or same user-as-:username
+ **/
+
+router.get("/:userId/more-stats", async function (req, res, next) {
+  try {
+    const stats = await User.getMoreStats("id", req.params.userId);
+    return res.json({ stats });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 
 /** PATCH /[userId] { user } => { user }
  *

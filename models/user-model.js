@@ -222,10 +222,21 @@ class User {
     const userRes = await db.query(
           `SELECT id AS "userId",
                   username,
-                  bio,
                   email,
                   country,
-                  permissions
+                  bio,
+                  date_registered AS "dateRegistered",
+                  permissions,
+                  curr_10_wma AS "curr10Wma",
+                  curr_100_wma AS "curr100Wma",
+                  peak_10_wma AS "peak10Wma",
+                  peak_10_wma_date AS "peak10WmaDate",
+                  peak_100_wma AS "peak100Wma",
+                  peak_100_wma_date AS "peak100WmaDate",
+                  num_of_plays_single AS "numOfPlaysSingle",
+                  last_play_single AS "lastPlaySingle",
+                  longest_word AS "longestWord",
+                  craziest_word AS "craziestWord"
            FROM users
            WHERE ${identifierType} = $1`,
         [value],
@@ -238,6 +249,57 @@ class User {
     return user;
   }
 
+
+  /** Given an id or username, return data about user.
+   *
+   * Returns { user }
+   *
+   * Throws NotFoundError if user not found.
+   **/
+
+  static async getMoreStats(userId) {
+    const res1 = await db.query(
+        `SELECT score,
+                TO_CHAR(play_time, 'Mon DD, YYYY') AS "date"
+         FROM plays
+         WHERE score > 0
+           AND user_id = $1
+         ORDER BY score DESC
+         LIMIT 10`,
+      [userId]
+    );
+    const bestPlayScoresSingle = res1.rows;
+
+    const res2 = await db.query(
+        `SELECT best_word AS "bestWord",
+                best_word_score AS "bestWordScore",
+                TO_CHAR(play_time, 'Mon DD, YYYY') AS "date"
+         FROM plays
+         WHERE best_word_score > 0
+           AND user_id = $1
+         ORDER BY best_word_score DESC
+         LIMIT 10`,
+      [userId]
+    );
+    const bestWordScores = res2.rows;
+
+    const res3 = await db.query(
+        `SELECT avg_word_score AS "avgWordScore",
+                TO_CHAR(play_time, 'Mon DD, YYYY') AS "date"
+         FROM plays
+         WHERE num_of_words > 14
+             AND avg_word_score > 0
+             AND user_id = $1
+         ORDER BY avg_word_score DESC
+         LIMIT 10`,
+      [userId]
+    );
+    const bestAvgWordScore = res3.rows;
+
+    const stats = { bestPlayScoresSingle, bestWordScores, bestAvgWordScore }
+
+    return stats;
+  }
 
 
   /** Update user data with `data`.
