@@ -107,8 +107,9 @@ function createUpdateQuery(tableName, data, whereClauseArray, columnsJsToSqlKey 
     }
     return accum + `, ${columnsJsToSqlKey[curr] || curr} = $${idx + 1 - s}`;
   }, '').slice(2);
-  for (const idx of keysArrayIdxsToDelete) {
-    keysArray.splice(idx, 1);
+  // loop through idex array backwards to avoid deleting the wrong index
+  for (let i = keysArrayIdxsToDelete.length - 1; i >= 0; i--) {
+    keysArray.splice(keysArrayIdxsToDelete[i], 1);
   }
   const whereStatement = whereClauseArray.slice(1).reduce((accum, curr, idx) => {
     return accum + `${WhereConjunction} ${curr[0]} ${curr[1]} $${idx + numOfDataItems + 2 - s}`;

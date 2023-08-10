@@ -292,7 +292,7 @@ class Play {
             const _101stPlayRes = await db.query(
                  `SELECT ${selectRowsStr}
                   FROM plays
-                  WHERE user_id = $1`,
+                  WHERE id = $1`,
               [recentScores[100].id] 
             );
             const _101stPlay = _101stPlayRes.rows[0];
@@ -382,7 +382,7 @@ class Play {
       // add update to last play single
       userUpdates.last_play_single = 'CURRENT_DATE';
       // increment numOfPlaysSingle and add to userUpdates
-      userUpdates.num_of_plays_single = userInfo.num_of_plays_single++;
+      userUpdates.num_of_plays_single = 'num_of_plays_single + 1';
       // wmas to be calculated ordered largest to smallest
       const wmasToCalc = [100, 10];
       const peakWmasToSelect = wmasToCalc.slice(1).reduce((accum, curr) => {
@@ -494,7 +494,7 @@ class Play {
             const _101stPlayRes = await db.query(
                  `SELECT ${selectRowsStr}
                   FROM plays
-                  WHERE user_id = $1`,
+                  WHERE id = $1`,
               [recentScores[100].id] 
             );
             const _101stPlay = _101stPlayRes.rows[0];
