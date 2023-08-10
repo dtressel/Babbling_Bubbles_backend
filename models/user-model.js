@@ -24,7 +24,7 @@ class User {
   static async authenticate(username, password) {
     // try to find the user first
     const result = await db.query(
-          `SELECT id, 
+          `SELECT id AS "userId", 
                   username,
                   password,
                   country,
@@ -121,7 +121,7 @@ class User {
             email,
             country)
            VALUES ($1, $2, $3, $4)
-           RETURNING id,
+           RETURNING id AS "userId",
                      username,
                      country,
                      permissions`,

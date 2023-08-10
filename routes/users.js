@@ -109,7 +109,7 @@ router.get("/:username/username", async function (req, res, next) {
  * Data can include:
  *   { email, bio, country, newPasssword, currPassword (for additional verification, required) }
  *
- * Returns { user: { id, username, email, bio, country, permissions } }
+ * Returns { user: { userId, username, email, bio, country, permissions } }
  *
  * Authorization required: same-user-as-:username
  **/
