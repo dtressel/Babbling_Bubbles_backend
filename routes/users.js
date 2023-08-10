@@ -74,7 +74,7 @@ router.get("/", async function (req, res, next) {
  *
  * Returns { user: { <user data> } }
  *
- * Authorization required: admin or same user-as-:username
+ * Authorization required: none
  **/
 
 router.get("/:userId", async function (req, res, next) {
@@ -92,7 +92,7 @@ router.get("/:userId", async function (req, res, next) {
  *
  * Returns { user: { <user data> } }
  *
- * Authorization required: admin
+ * Authorization required: none
  **/
 
 router.get("/:username/username", async function (req, res, next) {
@@ -111,12 +111,12 @@ router.get("/:username/username", async function (req, res, next) {
  *
  * Returns { user: { <user data> } }
  *
- * Authorization required: admin or same user-as-:username
+ * Authorization required: none
  **/
 
 router.get("/:userId/more-stats", async function (req, res, next) {
   try {
-    const stats = await User.getMoreStats("id", req.params.userId);
+    const stats = await User.getMoreStats(req.params.userId);
     return res.json({ stats });
   } catch (err) {
     return next(err);
@@ -131,7 +131,7 @@ router.get("/:userId/more-stats", async function (req, res, next) {
  *
  * Returns { user: { userId, username, email, bio, country, permissions } }
  *
- * Authorization required: same-user-as-:username
+ * Authorization required: same-user-as-:username or admin
  **/
 
 router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
@@ -145,7 +145,7 @@ router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, nex
     await User.checkIfCorrectPassword(req.params.userId, req.body.currPassword);
     delete req.body.currPassword;
     const user = await User.update(req.params.userId, req.body);
-    return res.json({ user });
+    return res.json({ user: { ...user, userId: req.params.userId } });
   } catch (err) {
     return next(err);
   }
@@ -157,7 +157,7 @@ router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, nex
  * 
  * Data required: password
  *
- * Authorization required: same-user-as-:username
+ * Authorization required: same-user-as-:username or admin
  **/
 
 router.delete("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
@@ -183,7 +183,7 @@ router.delete("/:userId", ensureCorrectUserOrAdmin, async function (req, res, ne
  * 
  * Data required: username
  *
- * Authorization required: same-user-as-:username
+ * Authorization required: admin
  **/
 
 router.delete("/:userId/admin", ensureAdmin, async function (req, res, next) {
@@ -222,7 +222,7 @@ router.patch("/:userId/admin", ensureAdmin, async function (req, res, next) {
     }
 
     const user = await User.update(req.params.userId, req.body);
-    return res.json({ ...user, id: req.params.userId });
+    return res.json({ user: { ...user, userId: req.params.userId } });
   } catch (err) {
     return next(err);
   }
@@ -241,7 +241,7 @@ router.patch("/:userId/admin", ensureAdmin, async function (req, res, next) {
  *   top10AvgWordScores: [{ playId, playTime, avgWordScore, score, numOfWords }]
  * }
  *
- * Authorization required: admin
+ * Authorization required: none
  **/
 
 router.get("/:userId/stats", async function (req, res, next) {
