@@ -27,7 +27,9 @@ class User {
           `SELECT id AS "userId", 
                   username,
                   password,
+                  email,
                   country,
+                  bio,
                   permissions
            FROM users
            WHERE username = $1`,
@@ -55,7 +57,7 @@ class User {
    *
    * If password is correct, no error, and returns undefined
    **/
-  static async checkIfCorrectPassword(userId, password) {
+  static async checkIfCorrectPassword(userId, password, fieldName) {
     // query user hashed password using userId
     const res = await db.query(
         `SELECT password
@@ -65,8 +67,9 @@ class User {
     );
     const storedHashedPassword = res.rows[0].password;
     // check if password is correct, and if not, throw error
-    if (!await bcrypt.compare(password, storedHashedPassword)) {
-      throw new UnauthorizedError("Invalid password");
+    const isValid = await bcrypt.compare(password, storedHashedPassword)
+    if (!isValid) {
+      throw new UnauthorizedError(`Invalid ${fieldName}`);
     }
   }
 
@@ -123,7 +126,9 @@ class User {
            VALUES ($1, $2, $3, $4)
            RETURNING id AS "userId",
                      username,
+                     email,
                      country,
+                     bio,
                      permissions`,
         [
           username,
@@ -167,10 +172,11 @@ class User {
             country,
             permissions)
            VALUES ($1, $2, $3, $4, $5)
-           RETURNING id,
+           RETURNING id AS "userId",
                      username,
                      email,
                      country,
+                     bio,
                      date_registered AS "dateRegistered",
                      permissions`,
         [
@@ -334,7 +340,8 @@ class User {
     const querySql = `UPDATE users 
                       SET ${setCols} 
                       WHERE id = ${idVarIdx} 
-                      RETURNING username,
+                      RETURNING id AS "userId",
+                                username,
                                 email,
                                 bio,
                                 country,

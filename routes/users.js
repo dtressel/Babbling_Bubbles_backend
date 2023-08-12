@@ -142,7 +142,7 @@ router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, nex
       throw new BadRequestError(errs);
     }
     // Check if password is correct, if not, will throw error
-    await User.checkIfCorrectPassword(req.params.userId, req.body.currPassword);
+    await User.checkIfCorrectPassword(req.params.userId, req.body.currPassword, "Current Password");
     delete req.body.currPassword;
     const user = await User.update(req.params.userId, req.body);
     return res.json({ user: { ...user, userId: req.params.userId } });
