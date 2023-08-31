@@ -1,49 +1,70 @@
-const bcrypt = require("bcrypt");
+"use strict";
 
 const db = require("../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../config");
-
-const testJobIds = [];
+const Play = require("./play-model");
+const { createToken } = require("../helpers/tokens");
 
 async function commonBeforeAll() {
-  // noinspection SqlWithoutWhere
-  await db.query("DELETE FROM companies");
-  // noinspection SqlWithoutWhere
   await db.query("DELETE FROM users");
+  await db.query("DELETE FROM plays");
 
-  await db.query(`
-    INSERT INTO companies(handle, name, num_employees, description, logo_url)
-    VALUES ('c1', 'C1', 1, 'Desc1', 'http://c1.img'),
-           ('c2', 'C2', 2, 'Desc2', 'http://c2.img'),
-           ('c3', 'C3', 3, 'Desc3', 'http://c3.img')`);
+  // Add users bubbles and bubblemaster (admin)
+  const bubbles = await db.query(`
+      INSERT INTO users (username,
+        password,
+        email,
+        country,
+        bio,
+        date_registered,
+        permissions)
+      VALUES ('bubbles',
+              $1,
+              'bubbles@gmail.com',
+              'United States',
+              'I love to sing and dance. My favorite food is pepperoni pizza.',
+              '2023-07-09',
+              'base'),
+            ('bubblemaster',
+              $2,
+              'bubblemaster@gmail.com',
+              'United States',
+              'I like long walks on the beach.',
+              '2023-07-11',
+              'admin')
+      RETURNING id`,
+    [
+      await bcrypt.hash("bubbles123", BCRYPT_WORK_FACTOR),
+      await bcrypt.hash("bubblemaster123", BCRYPT_WORK_FACTOR),
+    ]
+  );
 
-  const resultsJobs = await db.query(`
-    INSERT INTO jobs (title, salary, equity, company_handle)
-    VALUES ('Job1', 100, '0.1', 'c1'),
-           ('Job2', 200, '0.2', 'c1'),
-           ('Job3', 300, '0', 'c1'),
-           ('Job4', NULL, NULL, 'c1')
-    RETURNING id`);
-  testJobIds.splice(0, 0, ...resultsJobs.rows.map(r => r.id));
-
-  await db.query(`
-        INSERT INTO users(username,
-                          password,
-                          first_name,
-                          last_name,
-                          email)
-        VALUES ('u1', $1, 'U1F', 'U1L', 'u1@email.com'),
-               ('u2', $2, 'U2F', 'U2L', 'u2@email.com')
-        RETURNING username`,
-      [
-        await bcrypt.hash("password1", BCRYPT_WORK_FACTOR),
-        await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
-      ]);
-
-  await db.query(`
-        INSERT INTO applications(username, job_id)
-        VALUES ('u1', $1)`,
-      [testJobIds[0]]);
+  async function addPlays() {
+    for (let i = 0; i < 100; i++) {
+      const playId = await Play.addAtStartGame({ userId: bubbles.rows[0].id });
+      let score = Math.floor(Math.random() * 400) + 64;
+      await Play.updateAtGameOver({ 
+        playId: playId, 
+        baseInfo: {
+          score: score,
+          numOfWords: Math.min(Math.floor(Math.random() * 50) + 1, Math.floor(score / 4.5)), 
+          bestWord: "pleaser",
+          bestWordScore: 60,
+          bestWordBoardState: "snyjbnceyrnorV2EmxSOp"
+        }, 
+        extraStats: {
+          craziestWord: "pizzazz",
+          craziestWordScore: 52,
+          craziestWordBoardState: "snyjbnceyrnorV2EmxSOp",
+          longestWord: "entrances",
+          longestWordScore: 9034,
+          longestWordBoardState: "snyjbnceyrnorV2EmxSOp"
+        }
+      });
+    }
+  }
+  
+  addPlays();
 }
 
 async function commonBeforeEach() {
@@ -58,11 +79,14 @@ async function commonAfterAll() {
   await db.end();
 }
 
+const bubblesToken = createToken({ username: "bubbles", userId: 1, permissions: 'base' });
+const bubblemasterToken = createToken({ username: "bubblemaster", userId: 2, permissions: 'admin' });
 
 module.exports = {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  testJobIds,
+  bubblesToken,
+  bubblemasterToken
 };

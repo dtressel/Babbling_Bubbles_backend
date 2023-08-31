@@ -1,77 +1,70 @@
 "use strict";
 
 const db = require("../db.js");
-const User = require("../models/user-model.js");
-const Company = require("../models/company");
-const Job = require("../models/job");
+const { BCRYPT_WORK_FACTOR } = require("../config");
+const Play = require("../models/play-model");
 const { createToken } = require("../helpers/tokens");
 
-const testJobIds = [];
-
 async function commonBeforeAll() {
-  // noinspection SqlWithoutWhere
   await db.query("DELETE FROM users");
-  // noinspection SqlWithoutWhere
-  await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM plays");
 
-  await Company.create(
-      {
-        handle: "c1",
-        name: "C1",
-        numEmployees: 1,
-        description: "Desc1",
-        logoUrl: "http://c1.img",
+  // Add users bubbles and bubblemaster (admin)
+  const bubbles = await db.query(`
+      INSERT INTO users (username,
+        password,
+        email,
+        country,
+        bio,
+        date_registered,
+        permissions)
+      VALUES ('bubbles',
+              $1,
+              'bubbles@gmail.com',
+              'United States',
+              'I love to sing and dance. My favorite food is pepperoni pizza.',
+              '2023-07-09',
+              'base'),
+            ('bubblemaster',
+              $2,
+              'bubblemaster@gmail.com',
+              'United States',
+              'I like long walks on the beach.',
+              '2023-07-11',
+              'admin')
+      RETURNING id`,
+    [
+      await bcrypt.hash("bubbles123", BCRYPT_WORK_FACTOR),
+      await bcrypt.hash("bubblemaster123", BCRYPT_WORK_FACTOR),
+    ]
+  );
+
+  async function addPlays() {
+    for (let i = 0; i < 100; i++) {
+      const playId = await Play.addAtStartGame({ userId: bubbles.rows[0].id });
+      let score = Math.floor(Math.random() * 400) + 64;
+      await Play.updateAtGameOver({ 
+        playId: playId, 
+        baseInfo: {
+          score: score,
+          numOfWords: Math.min(Math.floor(Math.random() * 50) + 1, Math.floor(score / 4.5)), 
+          bestWord: "pleaser",
+          bestWordScore: 60,
+          bestWordBoardState: "snyjbnceyrnorV2EmxSOp"
+        }, 
+        extraStats: {
+          craziestWord: "pizzazz",
+          craziestWordScore: 52,
+          craziestWordBoardState: "snyjbnceyrnorV2EmxSOp",
+          longestWord: "entrances",
+          longestWordScore: 9034,
+          longestWordBoardState: "snyjbnceyrnorV2EmxSOp"
+        }
       });
-  await Company.create(
-      {
-        handle: "c2",
-        name: "C2",
-        numEmployees: 2,
-        description: "Desc2",
-        logoUrl: "http://c2.img",
-      });
-  await Company.create(
-      {
-        handle: "c3",
-        name: "C3",
-        numEmployees: 3,
-        description: "Desc3",
-        logoUrl: "http://c3.img",
-      });
-
-  testJobIds[0] = (await Job.create(
-      { title: "J1", salary: 1, equity: "0.1", companyHandle: "c1" })).id;
-  testJobIds[1] = (await Job.create(
-      { title: "J2", salary: 2, equity: "0.2", companyHandle: "c1" })).id;
-  testJobIds[2] = (await Job.create(
-      { title: "J3", salary: 3, /* equity null */ companyHandle: "c1" })).id;
-
-  await User.register({
-    username: "u1",
-    firstName: "U1F",
-    lastName: "U1L",
-    email: "user1@user.com",
-    password: "password1",
-    isAdmin: false,
-  });
-  await User.register({
-    username: "u2",
-    firstName: "U2F",
-    lastName: "U2L",
-    email: "user2@user.com",
-    password: "password2",
-    isAdmin: false,
-  });
-  await User.register({
-    username: "u3",
-    firstName: "U3F",
-    lastName: "U3L",
-    email: "user3@user.com",
-    password: "password3",
-    isAdmin: false,
-  });
-
-  await User.applyToJob("u1", testJobIds[0]);
+    }
+  }
+  
+  addPlays();
 }
 
 async function commonBeforeEach() {
@@ -86,19 +79,14 @@ async function commonAfterAll() {
   await db.end();
 }
 
-
-const u1Token = createToken({ username: "u1", isAdmin: false });
-const u2Token = createToken({ username: "u2", isAdmin: false });
-const adminToken = createToken({ username: "admin", isAdmin: true });
-
+const bubblesToken = createToken({ username: "bubbles", userId: 1, permissions: 'base' });
+const bubblemasterToken = createToken({ username: "bubblemaster", userId: 2, permissions: 'admin' });
 
 module.exports = {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  testJobIds,
-  u1Token,
-  u2Token,
-  adminToken,
+  bubblesToken,
+  bubblemasterToken
 };
