@@ -20,12 +20,12 @@ function getDatabaseUri() {
 // WJB: Evaluate in 2021 if this should be increased to 13 for non-test use
 const BCRYPT_WORK_FACTOR = process.env.NODE_ENV === "test" ? 1 : 12;
 
-console.log("Babbling Bubbles Config:");
-console.log("SECRET_KEY:", SECRET_KEY);
-console.log("PORT:", PORT.toString());
-console.log("BCRYPT_WORK_FACTOR", BCRYPT_WORK_FACTOR);
-console.log("Database:", getDatabaseUri());
-console.log("---");
+// console.log("Babbling Bubbles Config:");
+// console.log("SECRET_KEY:", SECRET_KEY);
+// console.log("PORT:", PORT.toString());
+// console.log("BCRYPT_WORK_FACTOR", BCRYPT_WORK_FACTOR);
+// console.log("Database:", getDatabaseUri());
+// console.log("---");
 
 module.exports = {
   SECRET_KEY,
