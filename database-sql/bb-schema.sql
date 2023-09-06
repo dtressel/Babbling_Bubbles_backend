@@ -8,21 +8,7 @@ CREATE TABLE users
   bio VARCHAR(300),
   date_registered DATE NOT NULL DEFAULT CURRENT_DATE,
   permissions TEXT NOT NULL DEFAULT 'base',
-  curr_10_wma FLOAT,
-  curr_100_wma FLOAT,
-  peak_10_wma FLOAT,
-  peak_10_wma_date DATE,
-  peak_100_wma FLOAT,
-  peak_100_wma_date DATE,
-  num_of_plays_single INT NOT NULL DEFAULT 0,
-  last_play_single DATE,
-  longest_word TEXT,
-  longest_word_score SMALLINT,
-  craziest_word TEXT,
-  craziest_word_score SMALLINT,
-  tenth_best_score INT,
-  tenth_best_avg_word_score FLOAT,
-  tenth_best_best_word_score INT
+  -- 'base', 'admin'
 );
 
 CREATE TABLE plays
@@ -33,10 +19,61 @@ CREATE TABLE plays
   game_id INT,
   play_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP(0),
   score INT NOT NULL DEFAULT 0,
-  num_of_words SMALLINT NOT NULL DEFAULT 0,
-  avg_word_score FLOAT,
-  best_word TEXT,
-  best_word_score INT,
-  best_word_board_state TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE best_words
+(
+  id PRIMARY KEY,
+  user_id INT NOT NULL,
+  best_type TEXT,
+  -- bst, crz, lng
+  found_on DATE NOT NULL DEFAULT CURRENT_DATE,
+  word TEXT,
+  score INT,
+  board_state TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)
+
+CREATE TABLE best_scores
+(
+  id PRIMARY KEY,
+  user_id INT NOT NULL,
+  game_type TEXT,
+  -- solo3, solo10, free
+  score_type TEXT,
+  -- ttl, avg
+  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
+  score INT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)
+
+-- keeps only 100 of each type per user to calculate wmas
+CREATE TABLE solo_scores
+(
+  id PRIMARY KEY,
+  user_id INT NOT NULL,
+  game_type TEXT,
+  -- solo3, solo10, free
+  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
+  score INT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)
+
+-- 1 row per user per game type to store stats for solo timed games
+CREATE TABLE solo_stats
+(
+  id PRIMARY KEY,
+  user_id INT NOT NULL,
+  game_type TEXT,
+  -- solo3, solo10
+  curr_20_wma FLOAT,
+  peak_20_wma FLOAT,
+  peak_20_wma_date DATE,
+  curr_100_wma FLOAT,
+  peak_100_wma FLOAT,
+  peak_100_wma_date DATE,
+  num_of_plays INT NOT NULL DEFAULT 0,
+  last_play DATE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)
