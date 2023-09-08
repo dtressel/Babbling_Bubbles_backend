@@ -33,7 +33,7 @@ router.get("/:userId", async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const scores = await BestScores.get(userId, filters);
+    const scores = await BestScores.get(req.params.userId, filters);
     return res.json({ scores });
   } catch (err) {
     return next(err);
@@ -58,7 +58,7 @@ router.get("/tenth/:userId", async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const scores = await BestScores.getTenth(userId, filters);
+    const scores = await BestScores.getTenth(req.params.userId, filters);
     return res.json({ scores });
   } catch (err) {
     return next(err);
@@ -87,7 +87,7 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const score = await BestScores.post(req.body);
+    const score = await BestScores.post(req.params.userId, req.body);
     return res.status(201).json({ score });
   } catch (err) {
     return next(err);
@@ -101,8 +101,8 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
 
 router.delete("/:bestScoreId", ensureLoggedIn, async function (req, res, next) {
   try {
-    await BestScores.delete(req.params.playId);
-    return res.json({ deleted: req.params.playId });
+    await BestScores.delete(req.params.bestScoreId);
+    return res.json({ deleted: req.params.bestScoreId });
   } catch (err) {
     return next(err);
   }

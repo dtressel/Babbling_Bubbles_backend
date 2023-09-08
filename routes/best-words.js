@@ -33,7 +33,7 @@ router.get("/:userId", async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const words = await BestWords.get(userId, filters);
+    const words = await BestWords.get(req.params.userId, filters);
     return res.json({ words });
   } catch (err) {
     return next(err);
@@ -58,7 +58,7 @@ router.get("/tenth/:userId", async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const words = await BestWords.getTenth(userId, filters);
+    const words = await BestWords.getTenth(req.params.userId, filters);
     return res.json({ words });
   } catch (err) {
     return next(err);
@@ -89,7 +89,7 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const word = await BestWords.post(req.body);
+    const word = await BestWords.post(req.params.userId, req.body);
     return res.status(201).json({ word });
   } catch (err) {
     return next(err);
@@ -103,8 +103,8 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
 
 router.delete("/:bestWordId", ensureLoggedIn, async function (req, res, next) {
   try {
-    await BestWords.delete(req.params.playId);
-    return res.json({ deleted: req.params.playId });
+    await BestWords.delete(req.params.bestWordId);
+    return res.json({ deleted: req.params.bestWordId });
   } catch (err) {
     return next(err);
   }
