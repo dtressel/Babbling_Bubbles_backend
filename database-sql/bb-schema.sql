@@ -26,6 +26,8 @@ CREATE TABLE best_words
 (
   id PRIMARY KEY,
   user_id INT NOT NULL,
+  game_type TEXT,
+  -- solo3, solo10, free
   best_type TEXT,
   -- bst, crz, lng
   found_on DATE NOT NULL DEFAULT CURRENT_DATE,
