@@ -6,7 +6,7 @@ const { NotFoundError } = require("../expressError");
 
 /** Related functions for plays. */
 
-class Play {
+class SoloScore {
   static filterKey = {
     userId: "user_id",
     gameType: "game_type",
@@ -567,4 +567,4 @@ class Play {
   }
 }
 
-module.exports = Play;
+module.exports = SoloScore;
