@@ -58,7 +58,7 @@ CREATE TABLE solo_scores
   game_type TEXT,
   -- solo3, solo10, free
   acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
-  score INT,
+  score INT NOT NULL DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
 
