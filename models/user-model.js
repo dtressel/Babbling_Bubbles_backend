@@ -256,58 +256,6 @@ class User {
   }
 
 
-  /** Given an id or username, return data about user.
-   *
-   * Returns { user }
-   *
-   * Throws NotFoundError if user not found.
-   **/
-
-  static async getMoreStats(userId) {
-    const res1 = await db.query(
-        `SELECT score,
-                TO_CHAR(play_time, 'Mon DD, YYYY') AS "date"
-         FROM plays
-         WHERE score > 0
-           AND user_id = $1
-         ORDER BY score DESC
-         LIMIT 10`,
-      [userId]
-    );
-    const bestPlayScoresSingle = res1.rows;
-
-    const res2 = await db.query(
-        `SELECT best_word AS "bestWord",
-                best_word_score AS "bestWordScore",
-                TO_CHAR(play_time, 'Mon DD, YYYY') AS "date"
-         FROM plays
-         WHERE best_word_score > 0
-           AND user_id = $1
-         ORDER BY best_word_score DESC
-         LIMIT 10`,
-      [userId]
-    );
-    const bestWordScores = res2.rows;
-
-    const res3 = await db.query(
-        `SELECT avg_word_score AS "avgWordScore",
-                TO_CHAR(play_time, 'Mon DD, YYYY') AS "date"
-         FROM plays
-         WHERE num_of_words > 14
-             AND avg_word_score > 0
-             AND user_id = $1
-         ORDER BY avg_word_score DESC
-         LIMIT 10`,
-      [userId]
-    );
-    const bestAvgWordScore = res3.rows;
-
-    const stats = { bestPlayScoresSingle, bestWordScores, bestAvgWordScore }
-
-    return stats;
-  }
-
-
   /** Update user data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain
@@ -355,7 +303,6 @@ class User {
   }
 
 
-
   /** Delete given user from database; returns undefined. */
 
   static async remove(userId) {
@@ -372,69 +319,55 @@ class User {
   }
 
 
+  /* 
+    Given a userID, return all stats for a user
+
+    Used to display stats on user profile page
+  */
+ 
   static async getStats(userId) {
-    const overallStats = await db.query(
-        `SELECT num_of_plays_single AS "numOfPlaysSingle",
-                curr_10_wma AS "curr10Wma",
+    const soloStats = await db.query(
+        `SELECT game_type AS "gameType",
+                num_of_plays AS "numOfPlays",
+                last_play AS "lastPlay",
+                curr_20_wma AS "curr20Wma",
+                peak_20_wma AS "peak20Wma",
+                TO_CHAR(peak_20_wma_date, 'Mon DD, YYYY') AS "peak20WmaDate",
                 curr_100_wma AS "curr100Wma",
-                peak_10_wma AS "peak10Wma",
-                peak_100_wma AS "peak100Wma"
+                peak_100_wma AS "peak100Wma",
+                TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "peak100WmaDate",
         FROM users
-        WHERE id = $1`,
+        WHERE id = $1
+        ORDER BY game_Type`,
       [userId]
     );
 
-    const top10SinglePlays = await db.query(
-       `SELECT id AS "playId",
-               play_time AS "playTime",
+    const bestScores = await db.query(
+       `SELECT game_type AS "gameType",
+               score_type AS "scoreType",
                score,
-               num_of_words AS "numOfWords",
-               best_word AS "bestWord",
-               best_word_score AS "bestWordScore"
-        FROM plays
+               TO_CHAR(acheived_on, 'Mon DD, YYYY') AS "date"
+        FROM best_scores
         WHERE user_id = $1
         AND score > 0
-        ORDER BY score DESC
-        LIMIT 10`,
+        ORDER BY game_type, score_type, score DESC`,
       [userId] 
     );
 
-    const top10Words = await db.query(
-       `SELECT id AS "playId",
-               play_time AS "playTime",
-               best_word AS "bestWord",
-               best_word_score AS "bestWordScore",
-               best_word_board_state AS "bestWordBoardState"
-        FROM plays
+    const bestWords = await db.query(
+       `SELECT game_type AS "gameType",
+               best_type AS "bestType",
+               word,
+               score,
+               board_state AS "boardState",
+               TO_CHAR(found_on, 'Mon DD, YYYY') AS "date"
+        FROM best_words
         WHERE user_id = $1
-        AND score > 0
-        ORDER BY best_word_score DESC
-        LIMIT 10`,
+        ORDER BY game_type, best_type, score DESC`,
       [userId] 
     );
 
-    const top10AvgWordScores = await db.query(
-       `SELECT id AS "playId",
-               play_time AS "playTime",
-               avg_word_score AS "avgWordScore",
-               score,
-               num_of_words AS "numOfWords"
-        FROM plays
-        WHERE user_id = $1
-        AND num_of_words > 14
-        ORDER BY avg_word_score DESC
-        LIMIT 10`,
-      [userId]   
-    );
-
-    if (!overallStats.rows[0]) {
-      throw new NotFoundError(`No user: ${id}`);
-    }
-
-    const stats = { ...overallStats.rows[0],
-                    top10SinglePlays: top10SinglePlays.rows,
-                    top10Words: top10Words.rows,
-                    top10AvgWordScores: top10AvgWordScores.rows };
+    const stats = { soloStats, bestScores, bestWords };
 
     return stats;
   }
