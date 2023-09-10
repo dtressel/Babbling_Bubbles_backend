@@ -19,10 +19,10 @@ CREATE TABLE best_words
   -- solo3, solo10, free
   best_type TEXT,
   -- bst, crz, lng
-  found_on DATE NOT NULL DEFAULT CURRENT_DATE,
   word TEXT,
   score INT,
   board_state TEXT,
+  found_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
 
@@ -34,8 +34,8 @@ CREATE TABLE best_scores
   -- solo3, solo10, free
   score_type TEXT,
   -- ttl, avg
-  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   score INT,
+  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
 
@@ -46,8 +46,8 @@ CREATE TABLE solo_scores
   user_id INT NOT NULL,
   game_type TEXT,
   -- solo3, solo10
-  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   score INT NOT NULL DEFAULT 0,
+  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
 
@@ -58,13 +58,13 @@ CREATE TABLE solo_stats
   user_id INT NOT NULL,
   game_type TEXT,
   -- solo3, solo10
+  num_of_plays INT NOT NULL DEFAULT 1,
+  last_play DATE NOT NULL DEFAULT CURRENT_DATE,
   curr_20_wma FLOAT,
   peak_20_wma FLOAT,
   peak_20_wma_date DATE,
   curr_100_wma FLOAT,
   peak_100_wma FLOAT,
   peak_100_wma_date DATE,
-  num_of_plays INT NOT NULL DEFAULT 1,
-  last_play DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
