@@ -12,8 +12,7 @@
             "type": "string",
             "enum": [
                 "solo3",
-                "solo10",
-                "free"
+                "solo10"
             ]
         }
     },

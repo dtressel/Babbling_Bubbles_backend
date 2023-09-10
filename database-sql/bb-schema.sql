@@ -45,7 +45,7 @@ CREATE TABLE solo_scores
   id BIGSERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   game_type TEXT,
-  -- solo3, solo10, free
+  -- solo3, solo10
   acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   score INT NOT NULL DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES users(id)
