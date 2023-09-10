@@ -11,20 +11,9 @@ CREATE TABLE users
   -- 'base', 'admin'
 );
 
-CREATE TABLE plays
-(
-  id BIGSERIAL PRIMARY KEY,
-  user_id INT NOT NULL,
-  game_type SMALLINT NOT NULL DEFAULT 0,
-  game_id INT,
-  play_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP(0),
-  score INT NOT NULL DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
 CREATE TABLE best_words
 (
-  id PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   game_type TEXT,
   -- solo3, solo10, free
@@ -39,7 +28,7 @@ CREATE TABLE best_words
 
 CREATE TABLE best_scores
 (
-  id PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   game_type TEXT,
   -- solo3, solo10, free
@@ -53,7 +42,7 @@ CREATE TABLE best_scores
 -- keeps only 100 of each type per user to calculate wmas
 CREATE TABLE solo_scores
 (
-  id PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   game_type TEXT,
   -- solo3, solo10, free
@@ -65,7 +54,7 @@ CREATE TABLE solo_scores
 -- 1 row per user per game type to store stats for solo timed games
 CREATE TABLE solo_stats
 (
-  id PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   game_type TEXT,
   -- solo3, solo10
