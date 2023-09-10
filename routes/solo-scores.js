@@ -9,8 +9,8 @@ const { ensureLoggedIn, ensureAdmin, ensureCorrectUserInBodyOrAdmin } = require(
 const { BadRequestError } = require("../expressError");
 const SoloScore = require("../models/solo-score-model");
 const soloScoreGetSchema = require("../schemas/soloScoreGet.json");
-const soloScorePatchSchema = require("../schemas/soloScoreGet.json");
-const soloScorePostSchema = require("../schemas/soloScoreGet.json");
+const soloScorePatchSchema = require("../schemas/soloScorePatch.json");
+const soloScorePostSchema = require("../schemas/soloScorePost.json");
 
 const router = express.Router();
 

@@ -75,7 +75,7 @@ CREATE TABLE solo_stats
   curr_100_wma FLOAT,
   peak_100_wma FLOAT,
   peak_100_wma_date DATE,
-  num_of_plays INT NOT NULL DEFAULT 0,
-  last_play DATE,
+  num_of_plays INT NOT NULL DEFAULT 1,
+  last_play DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
