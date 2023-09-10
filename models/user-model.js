@@ -232,17 +232,7 @@ class User {
                   country,
                   bio,
                   TO_CHAR(date_registered, 'Month DD, YYYY') AS "dateRegistered",
-                  permissions,
-                  curr_10_wma AS "curr10Wma",
-                  curr_100_wma AS "curr100Wma",
-                  peak_10_wma AS "peak10Wma",
-                  TO_CHAR(peak_10_wma_date, 'Month DD, YYYY') AS "peak10WmaDate",
-                  peak_100_wma AS "peak100Wma",
-                  TO_CHAR(peak_100_wma_date, 'Month DD, YYYY') AS "peak100WmaDate",
-                  num_of_plays_single AS "numOfPlaysSingle",
-                  last_play_single AS "lastPlaySingle",
-                  longest_word AS "longestWord",
-                  craziest_word AS "craziestWord"
+                  permissions
            FROM users
            WHERE ${identifierType} = $1`,
         [value],
@@ -324,7 +314,7 @@ class User {
 
     Used to display stats on user profile page
   */
- 
+
   static async getStats(userId) {
     const soloStats = await db.query(
         `SELECT game_type AS "gameType",
