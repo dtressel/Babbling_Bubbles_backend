@@ -105,25 +105,6 @@ router.get("/:username/username", async function (req, res, next) {
 });
 
 
-/** GET /[userId]/more-stats => { user }
- * 
- * Get info on user by id
- *
- * Returns { user: { <user data> } }
- *
- * Authorization required: none
- **/
-
-router.get("/:userId/more-stats", async function (req, res, next) {
-  try {
-    const stats = await User.getMoreStats(req.params.userId);
-    return res.json({ stats });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-
 /** PATCH /[userId] { user } => { user }
  *
  * Data can include:
