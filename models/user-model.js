@@ -316,7 +316,7 @@ class User {
   */
 
   static async getStats(userId) {
-    const soloStats = await db.query(
+    let soloStats = await db.query(
         `SELECT game_type AS "gameType",
                 num_of_plays AS "numOfPlays",
                 last_play AS "lastPlay",
@@ -331,8 +331,9 @@ class User {
         ORDER BY game_Type`,
       [userId]
     );
+    soloStats = soloStats.rows[0];
 
-    const bestScores = await db.query(
+    let bestScores = await db.query(
        `SELECT game_type AS "gameType",
                score_type AS "scoreType",
                score,
@@ -343,8 +344,9 @@ class User {
         ORDER BY game_type, score_type, score DESC`,
       [userId] 
     );
+    bestScores = bestScores.rows
 
-    const bestWords = await db.query(
+    let bestWords = await db.query(
        `SELECT game_type AS "gameType",
                best_type AS "bestType",
                word,
@@ -356,6 +358,7 @@ class User {
         ORDER BY game_type, best_type, score DESC`,
       [userId] 
     );
+    bestWords = bestWords.rows;
 
     const stats = { soloStats, bestScores, bestWords };
 
