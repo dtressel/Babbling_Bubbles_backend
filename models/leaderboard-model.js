@@ -10,119 +10,117 @@ const {
 /** Related functions for leaderboards. */
 
 class Leaderboard {
-  /** Get all Leaderboards
-   *
-   * Returns {
-   *   bestAvgWordScoreMin15: [{playId, username, date, avgWordScore}, {...}, ...],
-   *   bestCurrent100Wma: [{playId, username, curr100Wma}, {...}, ...],
-   *   bestCurrent10Wma: [{playId, username, curr10Wma}, {...}, ...],
-   *   bestPeak100Wma: [{playId, username, peak100Wma, date}, {...}, ...],
-   *   bestPeak10Wma: [{playId, username, peak10Wma, date}, {...}, ...],
-   *   bestPlayScoresSingle: [{playId, username, date, score}, {...}, ...],
-   *   bestWordScores: [{playId, username, date, bestWord, bestWordScore}, {...}, ...]
-   * }
-   **/
+  /*
+    Get leaderboards by game type
 
-  static async getAll() {
-    const res1 = await db.query(
-      `SELECT u.username,
-              p.score,
-              TO_CHAR(p.play_time, 'Mon DD, YYYY') AS "date"
-       FROM plays AS "p"
-       INNER JOIN users AS "u" 
-           ON p.user_id = u.id
-       WHERE p.score > 0
-       ORDER BY p.score DESC
-       LIMIT 10`
-    );
-    const bestPlayScoresSingle = res1.rows;
+    example Return
+    {
+      wmaStats: { curr_20_wma: [res1, res2, ...], peak_20_wma: [...], ... },
+      bestScores: { ttl: [res1, res2, ...], avg: [...] },
+      bestWords: { bst: [res1, res2, ...], ... }
+    }
+  */
 
-    const res2 = await db.query(
-      `SELECT u.username,
-              p.best_word AS "bestWord",
-              p.best_word_score AS "bestWordScore",
-              TO_CHAR(p.play_time, 'Mon DD, YYYY') AS "date"
-       FROM plays AS "p"
-       INNER JOIN users AS "u" 
-           ON p.user_id = u.id
-       WHERE p.best_word_score > 0
-       ORDER BY p.best_word_score DESC
-       LIMIT 10`
-    );
-    const bestWordScores = res2.rows;
+  static async getByType(filters) {
+    const gameType = filters.gameType;
+    const wmas = ['20', '100'];
+    const wmaStatTypes = ['curr', 'peak'];
+    const bestScoreTypes = ['ttl', 'avg'];
+    const bestWordTypes = ['bst', 'crz', 'lng'];
 
-    const res3 = await db.query(
-      `SELECT username,
-              curr_10_wma AS "curr10Wma"
-       FROM users
-       WHERE last_play_single >= NOW() - INTERVAL '60 days'
-         AND curr_10_wma > 0
-       ORDER BY curr_10_wma DESC
-       LIMIT 10`
-    );
-    const bestCurrent10Wma = res3.rows;
+    // initialize promise object to gather promises to await later
+    const promises = {
+      wmaStats: {},
+      bestScores: {},
+      bestWords: {}
+    }
 
-    const res4 = await db.query(
-      `SELECT username,
-              curr_100_wma AS "curr100Wma"
-       FROM users
-       WHERE last_play_single >= NOW() - INTERVAL '60 days'
-         AND curr_100_wma > 0
-       ORDER BY curr_100_wma DESC
-       LIMIT 10`
-    );
-    const bestCurrent100Wma = res4.rows;
+    // initialize leaderboard object for return
+    const leaderboards = {};
 
-    const res5 = await db.query(
-      `SELECT username,
-              peak_10_wma AS "peak10Wma",
-              TO_CHAR(peak_10_wma_date, 'Mon DD, YYYY') AS "date"
-       FROM users
-       WHERE peak_10_wma > 0
-       ORDER BY peak_10_wma DESC
-       LIMIT 10`
-    );
-    const bestPeak10Wma = res5.rows
+    /* 
+      make queries to database for each stat category
+      and add query promises to promise object by stat type
 
-    const res6 = await db.query(
-      `SELECT username,
-              peak_100_wma AS "peak100Wma",
-              TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "date"
-       FROM users
-       WHERE peak_100_wma > 0
-       ORDER BY peak_100_wma DESC
-       LIMIT 10`
-    );
-    const bestPeak100Wma = res6.rows;
+      when finished, promises object should look like this example:
+      {
+        wmaStats: { curr_20_wma: <promise>, peak_20_wma: <promise>, ... },
+        bestScores: { ttl: <promise>, avg: <promise> },
+        bestWords: { bst: <promise>, ... }
+      }
+    */
+    for (const wma of wmas) {
+      for (const statType of wmaStatTypes) {
+        promises.wmaStats[`${statType}${wma}Wma`] = db.query(
+          `
+            SELECT username,
+                   game_type AS "gameType",
+                   ${statType}_${wma}_wma AS "${statType}${wma}Wma",
+                   ${statType === 'peak' ? `TO_CHAR(peak_${wma}_wma_date, 'Mon DD, YYYY') AS "peak${wma}WmaDate",` : ''}
+            FROM solo_stats
+            WHERE game_type = $1
+            ORDER BY ${statType}_${wma}_wma DESC
+            LIMIT 10
+          `,
+          [gameType]
+        );
+      }
+    }
+    for (const type of bestScoreTypes) {
+      promises.bestScores[type] = db.query(
+        `
+          SELECT u.username
+                 bs.game_type AS "gameType",
+                 bs.score_type AS "scoreType",
+                 bs.score,
+                 TO_CHAR(bs.acheived_on, 'Mon DD, YYYY') AS "date"
+          FROM best_scores AS "bs"
+          INNER JOIN users AS "u"
+            ON bs.user_id = u.id
+          WHERE bs.game_type = $1
+            AND bs.score_type = ${type}
+          ORDER BY bs.score DESC
+          LIMIT 10
+        `,
+        [gameType] 
+      );
+    }
+    for (const type of bestWordTypes) {
+      promises.bestWords[type] = db.query(
+        `
+          SELECT u.username
+                 bw.game_type AS "gameType",
+                 bw.best_type AS "bestType",
+                 bw.word,
+                 bw.score,
+                 bw.board_state AS "boardState",
+                 TO_CHAR(bw.found_on, 'Mon DD, YYYY') AS "date"
+          FROM best_words AS "bw"
+          INNER JOIN users AS "u"
+            ON bw.user_id = u.id
+          WHERE bw.game_type = $1
+            AND bw.best_type = ${type}
+          ORDER BY bw.score DESC
+          LIMIT 10
+        `,
+        [gameType] 
+      );
+    }
 
-    const res7 = await db.query(
-      `SELECT u.username,
-              p.avg_word_score AS "avgWordScore",
-              TO_CHAR(p.play_time, 'Mon DD, YYYY') AS "date"
-       FROM plays AS "p"
-       INNER JOIN users AS "u" 
-           ON p.user_id = u.id
-       WHERE num_of_words > 14
-           AND p.avg_word_score > 0
-       ORDER BY p.avg_word_score DESC
-       LIMIT 10`  
-    );
-    const bestAvgWordScoreMin15 = res7.rows;
-
-    const leaderboards = {
-      bestAvgWordScoreMin15,
-      bestCurrent100Wma,
-      bestCurrent10Wma,
-      bestPeak100Wma,
-      bestPeak10Wma,
-      bestPlayScoresSingle,
-      bestWordScores
+    /* 
+      build leaderboard object and add result rows after awaiting
+      leaderboard object will be structured like the return object example above this method
+    */
+    for (const category in promises) {
+      leaderboards[category] = {};
+      for (const statType in promises[category]) {
+        const results = await promises[category][statType];
+        leaderboards[category][statType] = results.rows;
+      }
     }
 
     return leaderboards;
   }
 }
-
-
 
 module.exports = Leaderboard;
