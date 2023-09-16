@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureCorrectUserInBodyOrAdmin } = require("../middleware/auth-ware");
+const { ensureLoggedIn } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const BestScores = require("../models/best-score-model");
 const bestScoreGetSchema = require("../schemas/bestScoreGet.json");
@@ -43,19 +43,20 @@ router.get("/:userId", async function (req, res, next) {
 });
 
 
-/** POST /[userId] { score }  => { score }
- *
- * Allows a user to post a best score
- * 
- * Provide the following play obj:
- * {
- *   gameType,
- *   scoreType,
- *   score
- * }
- *
- * Authorization required: same-as-user
- **/
+/*
+  POST /[userId] { score }  => { score }
+
+  Allows a user to post a best score
+  
+  Provide the following play obj:
+  {
+    gameType,
+    scoreType,
+    score
+  }
+
+  Authorization required: same-as-user
+*/
 
 router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
   try {
@@ -71,10 +72,11 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
   }
 });
 
-/** DELETE /[bestScoreId]  =>  { deleted: bestScoreId }
- *
- * Authorization required: admin
- **/
+/*
+  DELETE /[bestScoreId]  =>  { deleted: <bestScoreId> }
+
+  Authorization required: admin
+*/
 
 router.delete("/:bestScoreId", ensureLoggedIn, async function (req, res, next) {
   try {

@@ -38,10 +38,10 @@ class BestScore {
     valuesArray = limitOffsetBuild.valuesArray;
     const bestScores = await db.query(
       `
-        SELECT game_type AS "gameType"
-               score_type AS "scoreType"
+        SELECT game_type AS "gameType",
+               score_type AS "scoreType",
                score,
-               TO_CHAR(bs.acheived_on, 'Mon DD, YYYY') AS "date"
+               TO_CHAR(acheived_on, 'Mon DD, YYYY') AS "date"
         FROM best_scores
         WHERE user_id = $1
           ${whereClauseBuild.whereString}
@@ -60,11 +60,13 @@ class BestScore {
     Returns { bestScoreId: <id> }
   */
   static async post(userId, data) {
+    const { sqlStatement, valuesArray } = createInsertQuery('best_scores', { userId, ...data }, filterKey);
     const bestScore = await db.query(
       `
-        ${createInsertQuery('best_scores', { userId, ...data }, filterKey)}
+        ${sqlStatement}
         RETURNING id AS "bestScoreId"
-      `
+      `,
+      valuesArray
     )
     return bestScore.rows[0];
   }
