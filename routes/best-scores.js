@@ -9,56 +9,33 @@ const { ensureLoggedIn, ensureCorrectUserInBodyOrAdmin } = require("../middlewar
 const { BadRequestError } = require("../expressError");
 const BestScores = require("../models/best-score-model");
 const bestScoreGetSchema = require("../schemas/bestScoreGet.json");
-const bestScoreGetTenthSchema = require("../schemas/bestScoreGetTenth.json");
 const bestScorePostSchema = require("../schemas/bestScorePost.json");
 
 const router = express.Router();
 
-/** GET /[userId] => { scores: [score1Obj, score2Obj] } ***each will have up to 10 of each type combo
- *
- * Returns list of all plays and optionally by filter(s).
- * 
- * Can filter on provided search filters:
- * - gameType
- * - scoreType
- * - num (number of scores to retrieve, from best to worst, defaults to all)
- *
- * Authorization required: none
- **/
+/* 
+  GET /[userId] => { scores: [score1Obj, score2Obj] } ***each will have up to 10 of each type combo
+
+  Returns list of all plays and optionally by filter(s).
+
+  Can filter on provided search filters:
+  - gameType
+  - scoreType
+  - limit (number of scores to retrieve, from best to worst, defaults to null resulting in retrieving all)
+  - offset (number result to start at, defaults to 0)
+
+  Authorization required: none
+*/
+
 router.get("/:userId", async function (req, res, next) {
   try {
-    const filters = req.query;
-    const validator = jsonschema.validate(filters, bestScoreGetSchema);
+    const validator = jsonschema.validate(req.query, bestScoreGetSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const scores = await BestScores.get(req.params.userId, filters);
-    return res.json({ scores });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-/** GET /tenth/[userId] => { scoresTenthBest: {[score1Obj, score2Obj]} }
- *
- * Returns list of all plays and optionally by filter(s).
- * 
- * Can filter on provided search filters:
- * - gameType
- * - scoreType
- *
- * Authorization required: none
- **/
-router.get("/tenth/:userId", async function (req, res, next) {
-  try {
-    const filters = req.query;
-    const validator = jsonschema.validate(filters, bestScoreGetTenthSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
-      throw new BadRequestError(errs);
-    }
-    const scores = await BestScores.getTenth(req.params.userId, filters);
+    const { limit, offset, ...filters } = req.query;
+    const scores = await BestScores.get(req.params.userId, filters, limit, offset);
     return res.json({ scores });
   } catch (err) {
     return next(err);

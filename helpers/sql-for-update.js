@@ -41,14 +41,74 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
  */
 
 function combineWhereClauses(clauseArray) {
-  if (!clauseArray[0]) {
-    return '';
-  }
+  if (!clauseArray[0]) return '';
   let whereString = `WHERE ${clauseArray[0]}`;
   for (let i = 1; i < clauseArray.length; i++) {
     whereString += ` AND ${clauseArray[i]}`;
   }
   return whereString;
+}
+
+/* 
+  Builds where clauses from a filters object
+
+  jsToSql key translates the JS formatted filter names into the SQL formatted filter names
+
+  values from the filters will fill the valuesArray, which may already contain values
+
+  values array also helps the function know where to start for $<num>
+
+  set firstClause as false if you already have a manually written WHERE clause and want to add
+  on to it with further AND additions
+
+  Returns: { whereClause, valuesArray }
+
+  If filters object is empty, it will return an empty string and original valuesArray
+*/
+
+function buildWhereClauses(filters, jsToSqlKey = {}, valuesArray = [], firstClause = true) {
+  let whereString = '';
+  // build whereString and valuesArray for each filter
+  for (const filter in filters) {
+    if (firstClause) {
+      whereString = `WHERE ${jsToSqlKey[filter]} = $${valuesArray.length + 1}`
+      firstClause = false;
+    } else {
+      if (whereString) whereString += ' ';
+      whereString += `AND ${jsToSqlKey[filter]} = $${valuesArray.length + 1}`
+    }
+    valuesArray.push(filters[filter]);
+  }
+  return { whereClause: whereString, valuesArray }
+}
+
+
+/* 
+  Builds a limit and/or offset clause (if both present, it will create a combined clause)
+
+  values from the limit and/or offset will fill the valuesArray, which may already contain values
+
+  values array also helps the function know where to start for $<num>
+
+  Returns: { limitOffsetClause, valuesArray }
+
+  If no limit or offset, it will return empty an string and original valuesArray
+*/
+
+function buildLimitOffsetClause(limit, offset, valuesArray = []) {
+  let limitOffsetClause = '';
+  // build limit statement if limit exists
+  if (limit) {
+    limitOffsetClause = `LIMIT $${valuesArray.length + 1}`;
+    valuesArray.push(limit);
+  }
+  // build offset statement if offset exists
+  if (offset) {
+    if (limitOffsetClause) limitOffsetClause += ' ';
+    limitOffsetClause = `OFFSET $${valuesArray.length + 1}`;
+    valuesArray.push(offset);
+  }
+  return { limitOffsetClause, valuesArray }
 }
 
 /** Creates an insert query from provided data
@@ -119,4 +179,4 @@ function createUpdateQuery(tableName, data, whereClauseArray, columnsJsToSqlKey 
   return { sqlStatement, valuesArray };
 }
 
-module.exports = { sqlForPartialUpdate, combineWhereClauses, createInsertQuery, createUpdateQuery };
+module.exports = { sqlForPartialUpdate, combineWhereClauses, createInsertQuery, createUpdateQuery, buildWhereClauses, buildLimitOffsetClause };
