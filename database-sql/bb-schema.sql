@@ -66,5 +66,6 @@ CREATE TABLE solo_stats
   curr_100_wma FLOAT,
   peak_100_wma FLOAT,
   peak_100_wma_date DATE,
+  UNIQUE (user_id, game_type),
   FOREIGN KEY (user_id) REFERENCES users(id)
 )
