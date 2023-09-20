@@ -90,19 +90,25 @@ function buildLimitOffsetClause(limit, offset, valuesArray = []) {
   Returns: { sqlStatement, valuesArray }
 */ 
 
-function createInsertQuery(tableName, data, columnsJsToSqlKey = {}) {
-  const keysArray = [...Object.keys(data)];
-  const numOfDataItems = keysArray.length;
-  if (!numOfDataItems) return;
-  const columnList = keysArray.slice(1).reduce((accum, curr) => {
-    return accum + `, ${columnsJsToSqlKey[curr] || curr}`;
-  }, columnsJsToSqlKey[keysArray[0]] || keysArray[0]);
-  let valuesList = '$1';
-  for (let i = 2; i <= numOfDataItems; i++) {
-    valuesList += `, $${i}`;
+function createInsertQuery(tableName, data, relativeChanges = {}, columnKey = {}, valuesArray = []) {
+  if (!Object.keys(data).length && !Object.keys(relativeChanges).length) {
+    throw new BadRequestError("No data");
   }
-  const sqlStatement = `INSERT INTO ${tableName} (${columnList}) VALUES (${valuesList})`;
-  const valuesArray = keysArray.map(key => data[key]);
+  const columnsArray = [];
+  const valuesArraySql = [];
+  for (const key in data) {
+    columnsArray.push(columnKey[key] === undefined ? key : columnKey[key]);
+    valuesArraySql.push(`$${valuesArray.length + 1}`);
+    valuesArray.push(data[key]);  
+  }
+  for (const key in relativeChanges) {
+    columnsArray.push(columnKey[key] === undefined ? key : columnKey[key]);
+    valuesArraySql.push(relativeChanges[key]);
+  }
+  const columnsSql = columnsArray.join(', ');
+  const valuesSql = valuesArraySql.join(', ');
+  const sqlStatement = `INSERT INTO ${tableName} (${columnsSql}) VALUES (${valuesSql})`;
+
   return { sqlStatement, valuesArray };
 }
 
@@ -110,11 +116,15 @@ function createInsertQuery(tableName, data, columnsJsToSqlKey = {}) {
 /*
   Builds an update set clause from provided data
 
-  Parameters: 1. data obj { <columnName>: <value>, ... },
+  Parameters: 1. data obj { <columnName>: <value>, <columnName>: <array>, ... }
+                 * An array (length = 2) as a value is used for a conditionally updated value
+                   Array index 0: The conditional statement, ex: 'GREATEST(peak_20_wma, <$_>)'
+                     ('<$_>' is a placeholder that will be replaced by a $<variable number>)
+                   Array index 1: The value to be used in place of '<$_>' in conditional statement
               2. relative changes obj 
                  { <columnName>: 'CURRENT_DATE', <columnName>: 'num_of_plays + 1', ... }
               3. columns key that translates given key in data obj to 
-                 expected SQL column name (optional),
+                 expected SQL column name (optional)
               4. current values array if there are already set values
 
   Returns: { sqlStatement, valuesArray }
@@ -126,14 +136,23 @@ function buildUpdateSetClause(data, relativeChanges = {}, columnKey = {}, values
   }
   const setClauseArray = [];
   for (const key in data) {
-    setClauseArray.push(`${columnKey[key] === undefined ? key : columnKey[key]} = $${valuesArray.length + 1}`);
-    valuesArray.push(data[key]);
+    // if a conditionally updated value (which would be an array of length = 2)
+    if (Array.isArray(data[key])) {
+      const value = data[key][0].replace('<$_>', `$${valuesArray.length + 1}`);
+      setClauseArray.push(`${columnKey[key] === undefined ? key : columnKey[key]} = ${value}`);
+      valuesArray.push(data[key][1]);
+    }
+    else {
+      setClauseArray.push(`${columnKey[key] === undefined ? key : columnKey[key]} = $${valuesArray.length + 1}`);
+      valuesArray.push(data[key]);
+    }
   }
   for (const key in relativeChanges) {
     setClauseArray.push(`${columnKey[key] === undefined ? key : columnKey[key]} = ${relativeChanges[key]}`);
   }
-  const setClause = 'SET ' + setClauseArray.join(', ');
+  const sqlStatement = 'SET ' + setClauseArray.join(', ');
+
   return { sqlStatement, valuesArray };
 }
 
-module.exports = { buildUpdateSetClause, combineWhereClauses, createInsertQuery, createUpdateQuery, buildWhereClauses, buildLimitOffsetClause };
+module.exports = { combineWhereClauses, buildWhereClauses, buildLimitOffsetClause, createInsertQuery, buildUpdateSetClause };
