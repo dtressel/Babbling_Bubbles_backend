@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const bcrypt = require("bcrypt");
-const { sqlForPartialUpdate } = require("../helpers/sql-for-update");
+const { buildUpdateSetClause } = require("../helpers/sql-for-update");
 const {
   NotFoundError,
   BadRequestError,
@@ -268,7 +268,7 @@ class User {
       data.newPassword = await bcrypt.hash(data.newPassword, BCRYPT_WORK_FACTOR);
     }
 
-    const { setCols, values } = sqlForPartialUpdate(
+    const { setCols, values } = buildUpdateSetClause(
         data,
         {
           newPassword: "password"
