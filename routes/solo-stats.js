@@ -10,7 +10,6 @@ const { BadRequestError } = require("../expressError");
 const SoloStat = require("../models/solo-stat-model");
 const soloStatGetSchema = require("../schemas/soloStatGet.json");
 const soloStatPatchSchema = require("../schemas/soloStatPatch.json");
-const soloStatPostSchema = require("../schemas/soloStatPost.json");
 
 const router = express.Router();
 
@@ -41,7 +40,7 @@ router.get("/:userId", async function (req, res, next) {
 });
 
 
-/** POST /[userId] { soloStat }  => { soloStat }
+/** PATCH /[userId] { soloStat }  => { soloStat }
  *
  * Adds a new soloStat when a user starts a new game
  * This prevents the user from closing the browser to avoid posting the stat of a bad game
@@ -50,23 +49,23 @@ router.get("/:userId", async function (req, res, next) {
  * 
  * Provide the following soloStat obj:
  * {
- *   gameType,
- *   curr_20_wma (curr_20_wma will also be set as peak_20_wma)
+ *   curr_20_wma,
+ *   curr_100_wma
  * }
- *
+ * 
  * This returns soloStatId to allow easy update after soloStat is complete
  *
  * Authorization required: logged in
  **/
 
-router.post("/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.patch("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, soloStatPostSchema);
+    const validator = jsonschema.validate(req.body, soloStatPatchSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const soloStatId = await SoloStat.addAtStartGame(req.params.userId, req.body);
+    const soloStatId = await SoloStat.patchAtGameStart(req.params.userId, req.params.gameType, req.body);
     return res.status(201).json({ soloStatId });
   } catch (err) {
     return next(err);
@@ -74,7 +73,7 @@ router.post("/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res
 });
 
 
-/** PATCH /[userId]/[gameType] { soloStat }  => { soloStat }
+/** PATCH /[soloStatId] { soloStat }  => { soloStat }
  *
  * Updates the soloStat at the completion of a game with full stats
  * 
@@ -92,14 +91,14 @@ router.post("/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res
  * Authorization required: same user as user in patched stat
  **/
 
-router.patch("/:userId/:gameType", ensureLoggedIn, async function (req, res, next) {
+router.patch("/game-end/:soloStatId", ensureLoggedIn, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloStatPatchSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.updateAtGameOver(req.params.userId, req.params.gameType, req.body);
+    const stats = await Play.patchAtGameEnd(req.params.userId, req.params.gameType, req.body);
     return res.status(201).json({ stats });
   } catch (err) {
     return next(err);

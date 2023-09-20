@@ -12,9 +12,6 @@
             "type": "number"
         }
     },
-    "required": [
-        "curr_20_wma"
-    ],
     "additionalProperties": false,
     "examples": [{
         "curr_20_wma": 154.23,

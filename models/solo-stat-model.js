@@ -1,146 +1,79 @@
 "use strict";
 
 const db = require("../db");
-const { combineWhereClauses, createInsertQuery, createUpdateQuery } = require("../helpers/sql-for-update");
+const { combineWhereClauses, createInsertQuery, createUpdateQuery, buildUpdateSetClause } = require("../helpers/sql-for-update");
 const { NotFoundError } = require("../expressError");
 
 /** Related functions for plays. */
 
 class SoloStat {
+  /* 
+    Key to translate filters from JS version to SQL version
+  */
   static filterKey = {
     userId: "user_id",
     gameType: "game_type",
-    oldestDate: "play_time",
-    newestDate: "play_time",
-    minScore: "score",
-    maxScore: "score",
-    minNumOfWords: "num_of_words",
-    maxNumOfWords: "num_of_words",
-    bestWord: "best_word",
-    minBestWordScore: "best_word_score",
-    maxBestWordScore: "best_word_score"
-  }
-
-  static columnsJsToSqlKey = {
-    userId: 'user_id',
-    gameType: 'game_type',
-    gameId: 'game_id',
-    numOfWords: 'num_of_words',
-    avgWordScore: 'avg_word_score',
-    bestWord: 'best_word',
-    bestWordScore: 'best_word_score',
-    bestWordBoardState: 'best_word_board_state'
-  }
-
-  /** Find all plays optionally filtered by various filter parameters
-   *
-   * Returns [{ play }, ...]
-   **/
-
-  static async getAll(filters) {
-    const whereClauses = this.buildWhereClauses(filters);
-    const whereString = combineWhereClauses(whereClauses);
-    const plays = await db.query(
-          `SELECT id,
-                  user_id AS "userId",
-                  game_type AS "gameType",
-                  game_id AS "gameID",
-                  play_time AS "playTime",
-                  score,
-                  num_of_words AS "numOfWords",
-                  avg_word_score AS "avgWordsScore",
-                  best_word AS "bestWord",
-                  best_word_score AS "bestWordScore",
-                  best_word_board_state AS "bestWordBoardState"
-           FROM plays
-           ${whereString}
-           ORDER BY id DESC`,
-    );
-    return plays.rows;
+    curr20Wma: "curr_20_wma",
+    curr100Wma: "curr_100_wma"
   }
 
 
   /* 
-  * create an array of WHERE clauses for getAll and getAllAdmin methods
-  **/
-  //  **********************************************************use sql for partial update instead of this****************************
-  static buildWhereClauses(filters) {
-    const whereClauses = [];
-    for (const filter in filters) {
-      const first3Letters = filter.slice(0, 3);
-      if (["min", "old"].includes(first3Letters)) {
-        whereClauses.push(`${this.filterKey[filter]} >= ${filters[filter]}`);
-      } 
-      else if (["max", "new"].includes(first3Letters)) {
-        whereClauses.push(`${this.filterKey[filter]} <= ${filters[filter]}`);
-      }
-      else if (filter === "bestWord") {
-        whereClauses.push(`UPPER(${this.filterKey[filter]}) LIKE UPPER('%${filters[filter]}%')`);
-      }
-      else {
-        whereClauses.push(`${this.filterKey[filter]} = ${filters[filter]}`);
-      }
+    Finds solo stats for a particular user optionally by gameType
+
+    Returns 
+      [
+        { gameType, numOfPlays, lastPlay, curr20Wma, peak20Wma, peak20WmaDate, curr100Wma, peak100Wma, peak100WmaDate },
+        ...
+      ]
+  */
+  static async get(userId, gameType) {
+    // set initial valuesArray to build on
+    const valuesArray = [userId]
+    let whereClause = 'WHERE user_id = $1';
+    // build where and clause based on where filters
+    if (gameType) {
+      whereClause += ' AND game_type = $2';
+      valuesArray.push(gameType);
     }
-    return whereClauses;
-  }
-
-
-
-    /** Given an id, return data about play.
-   *
-   * Throws NotFoundError if play not found.
-   **/
-  static async get(id) {
-    const playRes = await db.query(
-          `SELECT id,
-                  user_id AS "userId",
-                  game_type AS "gameType",
-                  game_id AS "gameID",
-                  play_time AS "playTime",
-                  score,
-                  num_of_words AS "numOfWords",
-                  avg_word_score AS "avgWordsScore",
-                  best_word AS "bestWord",
-                  best_word_score AS "bestWordScore",
-                  best_word_board_state AS "bestWordBoardState"
-            FROM plays
-            WHERE id = $1`,
-        [id]
+    const soloStats = await db.query(
+      `
+        SELECT game_type AS "gameType",
+               num_of_plays AS "numOfPlays",
+               TO_CHAR(last_play, 'Mon DD, YYYY') AS "lastPlay",
+               curr_20_wma AS "curr20Wma",
+               peak_20_wma AS "peak20Wma",
+               TO_CHAR(peak_20_wma_date, 'Mon DD, YYYY') AS "peak20WmaDate",
+               curr_100_wma AS "curr100Wma",
+               peak_100_wma AS "peak100Wma",
+               TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "peak100WmaDate"
+        FROM solo_stats
+        ${whereClause}
+      `,
+      valuesArray
     );
 
-    const play = playRes.rows[0];
-
-    if (!play) throw new NotFoundError(`No play: ${id}`);
-
-    return play;
+    return soloStats.rows;
   }
 
+  /*
+    Updates or creates (upserts) solo stat information for a particular solo game type by userId
 
-  /** Add new play at the start of a new single game without stats
-  *
-  * Returns playId
-  **/
-  static async addAtStartGame(data) {
-    // insert new play into database
-    const playInsertQuery = createInsertQuery('plays', data, this.columnsJsToSqlKey);
-    const playInsertRes = await db.query(
-      `${playInsertQuery.sqlStatement} RETURNING id`,
-      playInsertQuery.valuesArray
+    Updates on game start
+
+    Returns solo stat id
+  */
+  static async patchAtGameStart(userId, gameType, data) {
+    const insertQuery = createInsertQuery('solo_stats', { userId, gameType, ...data }, this.filterKey);
+    let valuesArray = insertQuery.valuesArray;
+    const insertSetClause = buildUpdateSetClause(data, this.filterKey, valuesArray);
+    const soloStat = await db.query(
+      `
+        ${insertQuery.sqlStatement}
+        ON CONFLICT (user_id) DO UPDATE
+        ${insertSetClause.sqlStatement}
+      `
     );
-    const playId = playInsertRes.rows[0].id;
-
-    // update database with info relevant to single plays
-    if (data.gameType === 0 || data.gameType === undefined) {
-      await db.query(
-          `UPDATE users
-           SET last_play_single = CURRENT_DATE,
-               num_of_plays_single = num_of_plays_single + 1
-           WHERE id = $1`,
-        [data.userId]
-      );
-    }
-
-    return playId;
   }
 
 
@@ -166,7 +99,7 @@ class SoloStat {
     }
 
     // update play in database
-    const playUpdateQuery = createUpdateQuery('plays', baseInfo, [["id", "=", playId]], this.columnsJsToSqlKey);
+    const playUpdateQuery = createUpdateQuery('plays', baseInfo, {}, [["id", "=", playId]], this.columnsJsToSqlKey);
     const previouslySetInfo = await db.query(
       `${playUpdateQuery.sqlStatement}
        RETURNING user_id AS "userId",
