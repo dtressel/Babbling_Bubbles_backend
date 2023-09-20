@@ -98,7 +98,7 @@ router.patch("/game-end/:soloStatId", ensureLoggedIn, async function (req, res, 
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.patchAtGameEnd(req.params.userId, req.params.gameType, req.body);
+    const stats = await Play.patchAtGameEnd(req.params.soloStatId, req.body);
     return res.status(201).json({ stats });
   } catch (err) {
     return next(err);

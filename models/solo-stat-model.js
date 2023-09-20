@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { combineWhereClauses, createInsertQuery, createUpdateQuery, buildUpdateSetClause } = require("../helpers/sql-for-update");
+const { createInsertQuery, buildUpdateSetClause } = require("../helpers/sql-for-update");
 const { NotFoundError } = require("../expressError");
 
 /** Related functions for plays. */
@@ -14,7 +14,9 @@ class SoloStat {
     userId: "user_id",
     gameType: "game_type",
     curr20Wma: "curr_20_wma",
-    curr100Wma: "curr_100_wma"
+    peak20Wma: "peak_20_wma",
+    curr100Wma: "curr_100_wma",
+    peak100Wma: "peak_100_wma"
   }
 
 
@@ -63,18 +65,57 @@ class SoloStat {
 
     Returns solo stat id
   */
+  //  **********************************  TODO: Increment play counter ************************************************
   static async patchAtGameStart(userId, gameType, data) {
-    const insertQuery = createInsertQuery('solo_stats', { userId, gameType, ...data }, this.filterKey);
+    const insertQuery = createInsertQuery('solo_stats', { userId, gameType, ...data }, {}, this.filterKey);
     let valuesArray = insertQuery.valuesArray;
-    const insertSetClause = buildUpdateSetClause(data, this.filterKey, valuesArray);
+    const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey, valuesArray);
+    valuesArray = buildUpdateSetClause.valuesArray;
+    // "upsert" statement
     const soloStat = await db.query(
       `
         ${insertQuery.sqlStatement}
-        ON CONFLICT (user_id) DO UPDATE
-        ${insertSetClause.sqlStatement}
-      `
+        ON CONFLICT (user_id, game_type) DO UPDATE
+        ${updateSetClause.sqlStatement}
+        RETURNING id AS "soloStatId"
+      `,
+      valuesArray
     );
+  
+    return soloStat.rows[0];
   }
+
+
+  /*
+    Updates solo stat information at game end by solo stat id
+
+    Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma }
+  */
+    static async patchAtGameStart(soloStatId, data) {
+      // create new entries in data to replace peak wmas with current wmas if greater
+      // these new entries being arrays will be handled differently by buildUpdateSetClause
+      for (const key in data) {
+        data[key.replace('curr', 'peak')] = ['GREATEST(peak_20_wma, <$_>)', data[key]];
+      }
+      const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey);
+      valuesArray = buildUpdateSetClause.valuesArray;
+      // push solo stat id into values array do be used in where clause
+      valuesArray.push(soloStatId);
+      const soloStat = await db.query(
+        `
+          UPDATE solo_stats
+          ${updateSetClause.sqlStatement}
+          WHERE id = $${valuesArray.length}
+          RETURNING curr_20_wma AS "curr20Wma",
+                    peak_20_wma AS "peak20Wma",
+                    curr_100_wma AS "curr100Wma",
+                    peak_100_wma AS "peak100Wma",
+        `,
+        valuesArray
+      );
+    
+      return soloStat.rows[0];
+    }
 
 
 
