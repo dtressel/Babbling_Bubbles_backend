@@ -27,7 +27,7 @@ class BestWord {
         ...
       ]
   */
-  static async get(userId, filters, limit = null, offset = 0) {
+  static async get(userId, filters, limit, offset) {
     // set initial valuesArray to build on
     let valuesArray = [userId]
     // build where clause based on where filters
@@ -47,7 +47,7 @@ class BestWord {
         FROM best_words
         WHERE user_id = $1
           ${whereClauseBuild.whereString}
-        ${limitOffsetBuild.limitOffsetClause}
+        ${limitOffsetBuild.sqlStatement}
       `,
       valuesArray
     );

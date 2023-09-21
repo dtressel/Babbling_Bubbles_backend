@@ -66,7 +66,7 @@ router.patch("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, as
       throw new BadRequestError(errs);
     }
     const soloStatId = await SoloStat.patchAtGameStart(req.params.userId, req.params.gameType, req.body);
-    return res.status(201).json({ soloStatId });
+    return res.status(200).json({ soloStatId });
   } catch (err) {
     return next(err);
   }

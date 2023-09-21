@@ -64,19 +64,19 @@ function buildWhereClauses(filters, jsToSqlKey = {}, valuesArray = [], firstClau
 */
 
 function buildLimitOffsetClause(limit, offset, valuesArray = []) {
-  let limitOffsetClause = '';
+  let sqlStatement = '';
   // build limit statement if limit exists
   if (limit) {
-    limitOffsetClause = `LIMIT $${valuesArray.length + 1}`;
+    sqlStatement = `LIMIT $${valuesArray.length + 1}`;
     valuesArray.push(limit);
   }
   // build offset statement if offset exists
   if (offset) {
-    if (limitOffsetClause) limitOffsetClause += ' ';
-    limitOffsetClause = `OFFSET $${valuesArray.length + 1}`;
+    if (sqlStatement) sqlStatement += ' ';
+    sqlStatement = `OFFSET $${valuesArray.length + 1}`;
     valuesArray.push(offset);
   }
-  return { limitOffsetClause, valuesArray }
+  return { sqlStatement, valuesArray }
 }
 
 /*
@@ -137,6 +137,7 @@ function buildUpdateSetClause(data, relativeChanges = {}, columnKey = {}, values
   const setClauseArray = [];
   for (const key in data) {
     // if a conditionally updated value (which would be an array of length = 2)
+    // **************************************** Delete this if, if unused (currently unused) **********************************************************
     if (Array.isArray(data[key])) {
       const value = data[key][0].replace('<$_>', `$${valuesArray.length + 1}`);
       setClauseArray.push(`${columnKey[key] === undefined ? key : columnKey[key]} = ${value}`);
