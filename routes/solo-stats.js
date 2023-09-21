@@ -85,7 +85,7 @@ router.patch("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, as
  *
  * This returns newly calculated stats:
  *  {
- *    stats: avgWordStat, curr100Wma, curr10Wma, isPeak100Wma, isPeak10Wma
+ *    stats: curr20Wma, peak20Wma, curr100Wma, peak100Wma, isPeak20Wma (may not exist), isPeak100Wma (may not exist)
  *  }
  *
  * Authorization required: same user as user in patched stat

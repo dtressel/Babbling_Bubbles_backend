@@ -14,9 +14,7 @@ class SoloStat {
     userId: "user_id",
     gameType: "game_type",
     curr20Wma: "curr_20_wma",
-    peak20Wma: "peak_20_wma",
     curr100Wma: "curr_100_wma",
-    peak100Wma: "peak_100_wma"
   }
 
 
@@ -90,17 +88,12 @@ class SoloStat {
 
     Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma }
   */
-  static async patchAtGameStart(soloStatId, data) {
-    // create new entries in data to replace peak wmas with current wmas if greater
-    // these new entries being arrays will be handled differently by buildUpdateSetClause
-    for (const key in data) {
-      data[key.replace('curr', 'peak')] = ['GREATEST(peak_20_wma, <$_>)', data[key]];
-    }
+  static async patchAtGameEnd(soloStatId, data) {
     const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey);
     valuesArray = buildUpdateSetClause.valuesArray;
-    // push solo stat id into values array do be used in where clause
+    // push solo stat id into values array to be used in where clause
     valuesArray.push(soloStatId);
-    const soloStat = await db.query(
+    let soloStat = await db.query(
       `
         UPDATE solo_stats
         ${updateSetClause.sqlStatement}
@@ -112,6 +105,32 @@ class SoloStat {
       `,
       valuesArray
     );
+    // check if returned current wmas are greater than peak wmas, if so, add to peakUpdates
+    const peakUpdates = {};
+    const peakRelativeChanges = {};
+    for (const wma of [20, 100]) {
+      if (soloStat.rows[0][`curr${wma}Wma`] > soloStat.rows[0][`peak${wma}Wma`]) {
+        peakUpdates[`peak_${wma}_wma`] = soloStat.rows[0][`curr${wma}Wma`];
+        peakRelativeChanges[`peak_${wma}_wma_date`] = 'CURRENT_DATE';
+        // update soloStat which will be returned, update to database happens below
+        soloStat.rows[0][`peak${wma}Wma`] = soloStat.rows[0][`curr${wma}Wma`];
+        soloStat.rows[0][`isPeak${wma}Wma`] = true;
+      }
+    }
+    // if there are updates to be made, do so
+    if (Object.keys(peakUpdates).length) {
+      const updateSetClause2 = buildUpdateSetClause(peakUpdates, peakRelativeChanges, this.filterKey);
+      const valuesArray2 = updateSetClause2.valuesArray;
+      valuesArray2.push(soloStatId);
+      await db.query(
+        `
+          UPDATE solo_stats
+          ${updateSetClause2.sqlStatement}
+          WHERE id = $${valuesArray2.length}
+        `,
+        valuesArray2
+      );
+    }
   
     return soloStat.rows[0];
   }
