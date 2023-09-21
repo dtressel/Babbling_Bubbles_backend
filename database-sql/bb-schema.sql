@@ -56,7 +56,7 @@ CREATE TABLE solo_stats
 (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
-  game_type TEXT,
+  game_type TEXT NOT NULL,
   -- solo3, solo10
   num_of_plays INT NOT NULL DEFAULT 1,
   last_play DATE NOT NULL DEFAULT CURRENT_DATE,
