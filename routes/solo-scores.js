@@ -20,21 +20,21 @@ const router = express.Router();
  * 
  * Can filter on provided search filters:
  * - gameType
- * - num (number of scores to retrieve, from newest to oldest, defaults to all)
+ * - limit (number of words to retrieve, from best to worst, defaults to null resulting in retrieving all)
+ * - offset (number result to start at, defaults to 0)
  *
  * Authorization required: none
  **/
 
 router.get("/:userId", async function (req, res, next) {
   try {
-    const filters = req.query;
-    const validator = jsonschema.validate(filters, soloScoreGetSchema);
+    const validator = jsonschema.validate(req.query, soloScoreGetSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-
-    const scores = await SoloScore.get(req.params.userId, filters);
+    const { limit, offset, gameType } = req.query;
+    const scores = await SoloScore.get(req.params.userId, gameType, limit, offset);
     return res.json({ scores });
   } catch (err) {
     return next(err);
@@ -49,24 +49,21 @@ router.get("/:userId", async function (req, res, next) {
  * At the completion of the game this soloScore will be updated with full stats
  * Also updates last_play_single and num_of_games_played in users data for user
  * 
- * Provide the following soloScore obj:
- * {
- *   gameType
- * }
+ * No Data needs to be provided in body
  *
- * This returns soloScoreId to allow easy update after soloScore is complete
+ * Returns { soloScoreId, curr20Wma, curr100Wma }
  *
  * Authorization required: logged in
  **/
 
-router.post("/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.post("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloScorePostSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const soloScoreId = await SoloScore.addAtStartGame(req.params.userId, req.body);
+    const soloScoreId = await SoloScore.postAtStartGame(req.params.userId, req.params.gameType);
     return res.status(201).json({ soloScoreId });
   } catch (err) {
     return next(err);
@@ -80,12 +77,14 @@ router.post("/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res
  * 
  * Provide the following soloScore obj:
  * {
- *     score
+ *    userId,
+ *    gameType, 
+ *    score
  * }
  *
  * This returns newly calculated stats:
  *  {
- *    stats: avgWordScore, curr100Wma, curr10Wma, isPeak100Wma, isPeak10Wma
+ *    stats: curr100Wma, currs20Wma
  *  }
  *
  * Authorization required: same user as user in patched score

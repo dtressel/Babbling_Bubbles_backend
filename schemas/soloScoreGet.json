@@ -9,18 +9,25 @@
             "type": "string",
             "enum": [
                 "solo3",
-                "solo10"
+                "solo10",
+                "free"
             ]
         },
-        "num": {
+        "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 100
+            "maximum": 101
+        },
+        "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 101
         }
     },
     "additionalProperties": false,
     "examples": [{
         "gameType": "solo3",
-        "num": 1
+        "limit": 1,
+        "offset": 100
     }]
 }
