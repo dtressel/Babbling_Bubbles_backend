@@ -114,6 +114,49 @@ function createInsertQuery(tableName, data, relativeChanges = {}, columnKey = {}
 
 
 /*
+  Creates an insert query to insert multiple rows from provided data
+
+  Parameters: 1. name of table to insert into
+              2. data arrays for provided data [[<data1>, <data2>, ...], [...], ...]
+              3. data column names array [<column1>, <column2>, ...] (column names in sql format)
+              4. relative changes data applied to all rows { acheived_on: 'CURRENT_DATE', ... }
+              5. current values array (optional)
+
+  Returns: { sqlStatement, valuesArray }
+*/ 
+
+function createMultipleInsertQuery(tableName, dataArrays, dataColumns, relativeChanges = {}, valuesArray = []) {
+  if (!Object.keys(data).length) {
+    throw new BadRequestError("No data");
+  }
+  const relativeChangesColumns = Object.keys(relativeChanges);
+  const columnsArray = [...dataColumns, ...relativeChangesColumns];
+  // Create arrays of arrays to hold the values of all of the rows to insert
+  const valuesArraysForSql = [];
+  for (const wordDataArr of dataArrays) {
+    // value array to hold values or sql variables for a single row
+    const values = [];
+    for (const value of wordDataArr) {
+      // push sql variable for each value
+      values.push(`$${valuesArray.length + 1}`);
+      // push values into valuesArray
+      valuesArray.push(value);
+    }
+    for (const column of relativeChangesColumns) {
+      // push relative changes values into values
+      values.push(relativeChanges[column]);
+    }
+    valuesArraysForSql.push(values);
+  }
+  const columnsSql = columnsArray.join(', ');
+  const valuesSql = valuesArraysForSql.join('), (');
+  const sqlStatement = `INSERT INTO ${tableName} (${columnsSql}) VALUES (${valuesSql})`;
+
+  return { sqlStatement, valuesArray };
+}
+
+
+/*
   Builds an update set clause from provided data
 
   Parameters: 1. data obj { <columnName>: <value>, <columnName>: <array>, ... }
@@ -156,4 +199,4 @@ function buildUpdateSetClause(data, relativeChanges = {}, columnKey = {}, values
   return { sqlStatement, valuesArray };
 }
 
-module.exports = { combineWhereClauses, buildWhereClauses, buildLimitOffsetClause, createInsertQuery, buildUpdateSetClause };
+module.exports = { combineWhereClauses, buildWhereClauses, buildLimitOffsetClause, createInsertQuery, createMultipleInsertQuery, buildUpdateSetClause };
