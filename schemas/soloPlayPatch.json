@@ -5,21 +5,11 @@
     "default": {},
     "title": "Root Schema",
     "required": [
-        "playId",
-        "soloStatId",
         "score",
         "numOfWords",
         "bestWords"
     ],
     "properties": {
-        "playId": {
-            "type": "integer",
-            "default": 0,
-            "title": "The playId Schema",
-            "examples": [
-                52
-            ]
-        },
         "score": {
             "type": "integer",
             "default": 0,
@@ -107,8 +97,6 @@
         }
     },
     "examples": [{
-        "playId": 52,
-        "soloStatId": 134,
         "score": 354,
         "numOfWords": 21,
         "bestWords": [{

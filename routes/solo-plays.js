@@ -61,7 +61,6 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
  * 
  * Provide the following play obj:
  * {
- *    playId, 
  *    score,
  *    numOfWords,
  *    bestWords: [{ type, word, score, boardState }, ...]
