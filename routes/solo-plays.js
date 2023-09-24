@@ -32,7 +32,6 @@ const router = express.Router();
  * Returns
  * {
  *    soloScoreId,
- *    soloStatId,
  *    bstWordScoreBar,
  *    crzWordScoreBar,
  *    lngWordScoreBar
@@ -48,7 +47,7 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const playId = await Play.addAtStartGame(req.body);
+    const playId = await Play.atGameStart(req.body);
     return res.status(201).json({ playId });
   } catch (err) {
     return next(err);
@@ -62,10 +61,7 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
  * 
  * Provide the following play obj:
  * {
- *    userId,
- *    gameType,
- *    soloScoreId,
- *    solostatId,
+ *    playId, 
  *    score,
  *    numOfWords,
  *    bestWords: [{ type, word, score, boardState }, ...]
@@ -93,7 +89,7 @@ router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.updateAtGameOver({ playId: req.params.playId, ...req.body });
+    const stats = await Play.atGameEnd(req.params.playId, req.body);
     return res.status(200).json({ stats });
   } catch (err) {
     return next(err);

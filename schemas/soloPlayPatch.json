@@ -5,50 +5,19 @@
     "default": {},
     "title": "Root Schema",
     "required": [
-        "userId",
-        "gameType",
-        "soloScoreId",
+        "playId",
         "soloStatId",
         "score",
         "numOfWords",
         "bestWords"
     ],
     "properties": {
-        "userId": {
+        "playId": {
             "type": "integer",
             "default": 0,
-            "title": "The userId Schema",
-            "examples": [
-                532
-            ]
-        },
-        "gameType": {
-            "type": "string",
-            "default": "",
-            "title": "The gameType Schema",
-            "enum": [
-                "solo3",
-                "solo10",
-                "free"
-            ],
-            "examples": [
-                "solo3"
-            ]
-        },
-        "soloScoreId": {
-            "type": "integer",
-            "default": 0,
-            "title": "The soloScoreId Schema",
+            "title": "The playId Schema",
             "examples": [
                 52
-            ]
-        },
-        "soloStatId": {
-            "type": "integer",
-            "default": 0,
-            "title": "The soloStatId Schema",
-            "examples": [
-                134
             ]
         },
         "score": {
@@ -138,9 +107,7 @@
         }
     },
     "examples": [{
-        "userId": 532,
-        "gameType": "solo3",
-        "soloScoreId": 52,
+        "playId": 52,
         "soloStatId": 134,
         "score": 354,
         "numOfWords": 21,
