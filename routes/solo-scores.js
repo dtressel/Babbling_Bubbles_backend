@@ -84,7 +84,7 @@ router.post("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, asy
  *
  * This returns newly calculated stats:
  *  {
- *    stats: curr100Wma, currs20Wma
+ *    stats: curr100Wma, curr20Wma
  *  }
  *
  * Authorization required: same user as user in patched score
