@@ -66,7 +66,7 @@ class SoloStat {
   static async patchAtGameStart(userId, gameType, data) {
     const insertQuery = createInsertQuery('solo_stats', { userId, gameType, ...data }, {}, this.filterKey);
     let valuesArray = insertQuery.valuesArray;
-    const updateSetClause = buildUpdateSetClause(data, { num_of_plays: "num_of_plays + 1" }, this.filterKey, valuesArray);
+    const updateSetClause = buildUpdateSetClause(data, { num_of_plays: "solo_stats.num_of_plays + 1" }, this.filterKey, valuesArray);
     valuesArray = buildUpdateSetClause.valuesArray;
     // "upsert" statement
     const soloStat = await db.query(
@@ -78,9 +78,20 @@ class SoloStat {
       `,
       valuesArray
     );
-  
+    /* 
+      Sample upsert statement:
+      `
+        INSERT INTO solo_stats
+          (user_id, game_type)
+        VALUES (1, 'solo3')
+        ON CONFLICT (user_id, game_type) DO UPDATE
+        SET num_of_plays = solo_stats.num_of_plays + 1
+        RETURNING id AS "soloStatId"
+      `
+    */
     return soloStat.rows[0];
   }
+
 
 
   /*
@@ -117,7 +128,7 @@ class SoloStat {
         soloStat.rows[0][`isPeak${wma}Wma`] = true;
       }
     }
-    // if there are updates to be made, do so
+    // if there are updates to be made to peak wmas, do so
     if (Object.keys(peakUpdates).length) {
       const updateSetClause2 = buildUpdateSetClause(peakUpdates, peakRelativeChanges, this.filterKey);
       const valuesArray2 = updateSetClause2.valuesArray;
