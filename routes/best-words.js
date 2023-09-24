@@ -51,10 +51,7 @@ router.get("/:userId", async function (req, res, next) {
   Provide the following play obj:
   {
     gameType,
-    wordType,
-    word,
-    score,
-    boardState
+    words: [{ bestType, word, score, boardState }, ...]
   }
 
   Authorization required: same-as-user

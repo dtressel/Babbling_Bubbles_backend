@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { createInsertQuery, buildWhereClauses, buildLimitOffsetClause } = require("../helpers/sql-for-update");
+const { createMultipleInsertQuery, buildWhereClauses, buildLimitOffsetClause } = require("../helpers/sql-for-update");
 const { NotFoundError } = require("../expressError");
 
 /** Related functions for plays. */
@@ -60,16 +60,47 @@ class BestScore {
     Returns { bestScoreId: <id> }
   */
   static async post(userId, data) {
-    const { sqlStatement, valuesArray } = createInsertQuery('best_scores', { userId, ...data }, filterKey);
-    const bestScore = await db.query(
-      `
-        ${sqlStatement}
-        RETURNING id AS "bestScoreId"
-      `,
-      valuesArray
-    )
-    return bestScore.rows[0];
+    // create arrays of data values
+    const dataArrays = data.words.map((scoreObj) => {
+      return [userId, data.gameType, scoreObj.scoreType, scoreObj.score];
+    });
+    const dataColumns = ['user_id', 'game_type', 'score_type', 'score'];
+    const { sqlStatement, valuesArray } = createMultipleInsertQuery('best_scores', dataArrays, dataColumns, { acheived_on: 'CURRENT_DATE' });
+    // Insert query
+    await db.query(sqlStatement, valuesArray);
+    // Delete excess rows
+    const scoreTypesUpdated = data.scores.map(dataObj => dataObj.scoreType);
+    // Gather ids of rows to delete
+    const idsToDelete = [];
+    for (const scoreType of scoreTypesUpdated) {
+      const res = await db.query(
+        `
+          SELECT id
+          FROM best_scores
+          WHERE user_id = $1
+            AND game_type = $2
+            AND score_type = $3
+          ORDER BY score DESC
+          OFFSET 10
+        `,
+        [userId, data.gameType, scoreType]
+      );
+      if (res.rows.length) {
+        idsToDelete.push(...res.rows.map(row => row.id));
+      }
+    }
+    // Delete query
+    if (idsToDelete.length) {
+      await db.query(
+        `
+          DELETE FROM best_scores
+          WERE id IN (${idsToDelete.join(', ')})
+        `
+      );
+
+    return { message: 'best score(s) added' };
   }
+}
 
 
   /* 

@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { createInsertQuery, buildWhereClauses, buildLimitOffsetClause } = require("../helpers/sql-for-update");
+const { buildWhereClauses, buildLimitOffsetClause, createMultipleInsertQuery } = require("../helpers/sql-for-update");
 const { NotFoundError } = require("../expressError");
 
 /** Related functions for plays. */
@@ -62,15 +62,48 @@ class BestWord {
     Returns { bestWordId: <id> }
   */
   static async post(userId, data) {
-    const { sqlStatement, valuesArray } = createInsertQuery('best_words', { userId, ...data }, filterKey);
-    const bestWord = await db.query(
-      `
-        ${sqlStatement}
-        RETURNING id AS "bestWordId"
-      `,
-      valuesArray
-    )
-    return bestWord.rows[0];
+    // create arrays of data values
+    const dataArrays = data.words.map((wordObj) => {
+      return [userId, data.gameType, wordObj.bestType, wordObj.word, wordObj.score, wordObj.boardState];
+    });
+    const dataColumns = ['user_id', 'game_type', 'best_type', 'word', 'score', 'board_state'];
+    const { sqlStatement, valuesArray } = createMultipleInsertQuery('best_words', dataArrays, dataColumns, { found_on: 'CURRENT_DATE' });
+    // Insert query
+    await db.query(sqlStatement, valuesArray);
+    // Delete excess rows
+    const bestTypesUpdated = data.words.reduce((accum, curr) => {
+      return accum.add(curr.bestType);
+    }, new Set());
+    // Gather ids of rows to delete
+    const idsToDelete = [];
+    for (const bestType of bestTypesUpdated) {
+      const res = await db.query(
+        `
+          SELECT id
+          FROM best_words
+          WHERE user_id = $1
+            AND game_type = $2
+            AND best_type = $3
+          ORDER BY score DESC
+          OFFSET 10
+        `,
+        [userId, data.gameType, bestType]
+      );
+      if (res.rows.length) {
+        idsToDelete.push(...res.rows.map(row => row.id));
+      }
+    }
+    // Delete query
+    if (idsToDelete.length) {
+      await db.query(
+        `
+          DELETE FROM best_words
+          WERE id IN (${idsToDelete.join(', ')})
+        `
+      );
+    }
+
+    return { message: 'best word(s) added' };
   }
 
 

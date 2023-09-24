@@ -51,8 +51,7 @@ router.get("/:userId", async function (req, res, next) {
   Provide the following play obj:
   {
     gameType,
-    scoreType,
-    score
+    scores: [{ scoreType, score }, ...]
   }
 
   Authorization required: same-as-user
