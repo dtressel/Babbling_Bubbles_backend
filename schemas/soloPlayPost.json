@@ -17,25 +17,16 @@
             ]
         },
         "gameType": {
-            "type": "integer",
-            "default": 0,
-            "title": "The gameType Schema",
-            "examples": [
-                0
-            ]
-        },
-        "gameId": {
-            "type": "integer",
-            "default": 0,
-            "title": "The gameId Schema",
-            "examples": [
-                63654
+            "type": "string",
+            "enum": [
+                "solo3",
+                "solo10",
+                "free"
             ]
         }
     },
     "examples": [{
         "userId": 532,
-        "gameType": 0,
-        "gameId": 63654
+        "gameType": "solo3"
     }]
 }
