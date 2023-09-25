@@ -7,7 +7,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureAdmin, ensureCorrectUserInBodyOrAdmin } = require("../middleware/auth-ware");
+const { ensureLoggedIn, ensureCorrectUserOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const Play = require("../models/play-model");
 const soloPlayPostSchema = require("../schemas/soloPlayPost.json");
@@ -25,7 +25,6 @@ const router = express.Router();
  * 
  * Provide the following play obj:
  * {
- *   userId,
  *   gameType
  * }
  *
@@ -40,17 +39,17 @@ const router = express.Router();
  *    }
  * }
  *
- * Authorization required: logged in
+ * Authorization required: correct user or admin
  **/
 
-router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloPlayPostSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const playData = await Play.atGameStart(req.body);
+    const playData = await Play.atGameStart(req.params.userId, req.body.gameType);
     return res.status(201).json({ playData });
   } catch (err) {
     return next(err);
@@ -85,7 +84,7 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
  *    }
  *  }
  *
- * Authorization required: logged in
+ * Authorization required: logged in, later checks if the data that it's updating is for the correct user
  **/
 
 router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
@@ -95,7 +94,7 @@ router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.atGameEnd(req.params.playId, req.body);
+    const stats = await Play.atGameEnd(req.params.playId, req.body, res.locals.user.userId);
     return res.status(200).json({ stats });
   } catch (err) {
     return next(err);

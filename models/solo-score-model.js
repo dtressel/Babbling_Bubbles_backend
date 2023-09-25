@@ -94,20 +94,26 @@ class SoloScore {
   /*
     Updates solo score information at game end by solo score id
 
+    Provide 
+      - soloScoreId
+      - data
+      - loggedInUserId (to confirm that play information to update matches logged in user)
+
     Returns { userId, gameType, curr20Wma, curr100Wma }
   */
-  static async patchAtGameEnd(soloScoreId, data) {
+  static async patchAtGameEnd(soloScoreId, data, loggedInUserId) {
     const updateSetClause = buildUpdateSetClause({ score: data.score } , { acheived_on: 'CURRENT_DATE' });
     const valuesArray = buildUpdateSetClause.valuesArray;
     // push solo score id into values array to be used in where clause
-    valuesArray.push(soloScoreId);
+    valuesArray.push(soloScoreId, loggedInUserId);
 
     // update solo scores with the new score
     const playInfoRes = await db.query(
       `
         UPDATE solo_scores
         ${updateSetClause.sqlStatement}
-        WHERE id = $${valuesArray.length}
+        WHERE id = $${valuesArray.length - 1}
+          AND user_id = $${valuesArray.length}
         RETURNING user_id AS "userId"
                   game_type AS "gameType"
       `,

@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn } = require("../middleware/auth-ware");
+const { ensureAdmin, ensureCorrectUserOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const BestWords = require("../models/best-word-model");
 const bestWordGetSchema = require("../schemas/bestWordGet.json");
@@ -86,7 +86,7 @@ router.getTenthBest("/:userId/tenth-best", async function (req, res, next) {
   Authorization required: same-as-user
 */
 
-router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
+router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, bestWordPostSchema);
     if (!validator.valid) {
@@ -106,7 +106,7 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
   Authorization required: admin
 */
 
-router.delete("/:bestWordId", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:bestWordId", ensureAdmin, async function (req, res, next) {
   try {
     await BestWords.delete(req.params.bestWordId);
     return res.json({ deleted: req.params.bestWordId });

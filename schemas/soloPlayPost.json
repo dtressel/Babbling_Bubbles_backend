@@ -8,14 +8,6 @@
         "userId"
     ],
     "properties": {
-        "userId": {
-            "type": "integer",
-            "default": 0,
-            "title": "The userId Schema",
-            "examples": [
-                532
-            ]
-        },
         "gameType": {
             "type": "string",
             "enum": [
@@ -26,7 +18,6 @@
         }
     },
     "examples": [{
-        "userId": 532,
         "gameType": "solo3"
     }]
 }

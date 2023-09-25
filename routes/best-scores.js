@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn } = require("../middleware/auth-ware");
+const { ensureAdmin, ensureCorrectUserOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const BestScores = require("../models/best-score-model");
 const bestScoreGetSchema = require("../schemas/bestScoreGet.json");
@@ -86,7 +86,7 @@ router.getTenBest("/:userId/ten-best", async function (req, res, next) {
   Authorization required: same-as-user
 */
 
-router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
+router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, bestScorePostSchema);
     if (!validator.valid) {
@@ -106,7 +106,7 @@ router.post("/:userId", ensureLoggedIn, async function (req, res, next) {
   Authorization required: admin
 */
 
-router.delete("/:bestScoreId", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:bestScoreId", ensureAdmin, async function (req, res, next) {
   try {
     await BestScores.delete(req.params.bestScoreId);
     return res.json({ deleted: req.params.bestScoreId });

@@ -11,11 +11,11 @@ const User = require("../models/user-model");
 class SoloPlay {
   static bestTypes = ['bst', 'lng', 'crz'];
 
-  static async atGameStart(data) {
-    const soloScorePromise = SoloScore.postAtGameStart(data.userId, data.gameType);
-    const soloStatPromise = SoloStat.patchAtGameStart(data.userId, data.gameType);
+  static async atGameStart(userId, gameType) {
+    const soloScorePromise = SoloScore.postAtGameStart(userId, gameType);
+    const soloStatPromise = SoloStat.patchAtGameStart(userId, gameType);
     const bestTypePromises = this.bestTypes.map((bestType) => {
-      return BestWord.getTenthBest(data.userId, { bestType: bestType });
+      return BestWord.getTenthBest(userId, { bestType: bestType });
     })
     const results = await Promise.all([soloScorePromise, soloStatPromise, ...bestTypePromises]);
 
@@ -29,9 +29,14 @@ class SoloPlay {
     return gameData;
   }
 
-  static async atGameEnd(playId, data) {
-    const userInfoAndWmas = await SoloScore.patchAtGameEnd(playId, data.score);
+  static async atGameEnd(playId, data, loggedInUserId) {
+    const userInfoAndWmas = await SoloScore.patchAtGameEnd(playId, data.score, loggedInUserId);
     const { userId, gameType, ...currWmas } = userInfoAndWmas;
+    /* if there is no userId, that means that nothing was updated and that the logged
+       in user does not match the user associated with this particular playId */ 
+    if (!userId) {
+      throw new UnauthorizedError();
+    }
     const soloStatPromise = SoloStat.patchAtGameEnd(data.soloStatId, currWmas);
     const userPromise = User.updateWordsFound(userId, data.numOfWords); /* returns nothing */
     const bestTtlScoresPromise = BestScore.getTenBest(userId, { gameType, scoreType: 'bst' });

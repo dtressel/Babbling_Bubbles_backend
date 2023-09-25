@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureAdmin, ensureCorrectUserInBodyOrAdmin } = require("../middleware/auth-ware");
+const { ensureAdmin, ensureCorrectUserOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const SoloScore = require("../models/solo-score-model");
 const soloScoreGetSchema = require("../schemas/soloScoreGet.json");
@@ -59,7 +59,7 @@ router.get("/:userId", async function (req, res, next) {
  * Authorization required: logged in
  **/
 
-router.post("/game-start/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.post("/game-start/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloScorePostSchema);
     if (!validator.valid) {
@@ -90,10 +90,10 @@ router.post("/game-start/:userId", ensureCorrectUserInBodyOrAdmin, async functio
  *    stats: curr100Wma, curr20Wma
  *  }
  *
- * Authorization required: same user as user in patched score
+ * Authorization required: admin
  **/
 
-router.patch("/:soloScoreId", ensureLoggedIn, async function (req, res, next) {
+router.patch("/:soloScoreId", ensureAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloScorePatchSchema);
     if (!validator.valid) {

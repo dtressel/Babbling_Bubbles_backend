@@ -79,29 +79,9 @@ function ensureCorrectUserOrAdmin(req, res, next) {
 }
 
 
-  /** Middleware to use when they must provide a valid token & be the user matching
- *  the userId provided in body data.
- *
- *  If not, raises Unauthorized.
- */
-
-function ensureCorrectUserInBodyOrAdmin(req, res, next) {
-  try {
-    const user = res.locals.user;
-    if (!(user && (user.permissions === "admin" || user.userId === +req.body.userId))) {
-      throw new UnauthorizedError();
-    }
-    return next();
-  } catch (err) {
-    return next(err);
-  }
-}
-
-
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
   ensureAdmin,
-  ensureCorrectUserOrAdmin,
-  ensureCorrectUserInBodyOrAdmin
+  ensureCorrectUserOrAdmin
 };

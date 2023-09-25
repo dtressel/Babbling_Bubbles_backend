@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureAdmin, ensureCorrectUserInBodyOrAdmin } = require("../middleware/auth-ware");
+const { ensureAdmin, ensureCorrectUserOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const SoloStat = require("../models/solo-stat-model");
 const soloStatGetSchema = require("../schemas/soloStatGet.json");
@@ -57,7 +57,7 @@ router.get("/:userId", async function (req, res, next) {
  * Authorization required: logged in
  **/
 
-router.patch("/game-start/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.patch("/game-start/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloStatPatchSchema);
     if (!validator.valid) {
@@ -90,7 +90,7 @@ router.patch("/game-start/:userId", ensureCorrectUserInBodyOrAdmin, async functi
  * Authorization required: same user as user in patched stat
  **/
 
-router.patch("/game-end/:soloStatId", ensureLoggedIn, async function (req, res, next) {
+router.patch("/game-end/:soloStatId", ensureAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloStatPatchSchema);
     if (!validator.valid) {
