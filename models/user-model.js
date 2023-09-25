@@ -231,6 +231,7 @@ class User {
                   email,
                   country,
                   bio,
+                  words_found AS "wordsFound"
                   TO_CHAR(date_registered, 'Month DD, YYYY') AS "dateRegistered",
                   permissions
            FROM users
@@ -292,6 +293,31 @@ class User {
     return user;
   }
 
+
+    /** Update a user's words found number after game play.
+   *
+   * Method must be provided: userId, words found increment amount
+   *
+   * Returns { userId }
+   */
+
+    static async updateWordsFound(userId, increment) {  
+      const result = await db.query(
+        `
+          UPDATE users
+          SET words_found = words_found + $1
+          WHERE id = $2
+          RETURNING id AS "userId"
+        `,
+        [increment, userId]
+      );
+
+      const user = result.rows[0];
+  
+      if (!user) throw new NotFoundError(`No user: ${userId}`);
+  
+      return user;
+    }
 
   /** Delete given user from database; returns undefined. */
 

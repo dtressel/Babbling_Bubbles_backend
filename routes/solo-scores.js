@@ -49,21 +49,24 @@ router.get("/:userId", async function (req, res, next) {
  * At the completion of the game this soloScore will be updated with full stats
  * Also updates last_play_single and num_of_games_played in users data for user
  * 
- * No Data needs to be provided in body
+ * Provide the following soloStat obj:
+ * {
+ *    gameType
+ * }
  *
- * Returns { soloScoreId, curr20Wma, curr100Wma }
+ * Returns { soloScoreId }
  *
  * Authorization required: logged in
  **/
 
-router.post("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.post("/game-start/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloScorePostSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const soloScoreId = await SoloScore.postAtStartGame(req.params.userId, req.params.gameType);
+    const soloScoreId = await SoloScore.postAtStartGame(req.params.userId, req.body.gameType);
     return res.status(201).json({ soloScoreId });
   } catch (err) {
     return next(err);

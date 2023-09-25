@@ -55,6 +55,28 @@ class BestScore {
 
 
   /* 
+    Finds the ten best scores for a particular user by game type and score type
+
+    Returns { score }
+  */
+    static async getTenBest(userId, filters) {
+      const tenBestScores = await db.query(
+        `
+          SELECT score
+          FROM best_scores
+          WHERE user_id = $1
+            AND game_type = $2
+            AND score_type = $3
+          LIMIT 10
+        `,
+        [userId, filters.gameType, filters.scoreType]
+      );
+  
+      return tenBestScores.rows;
+    }
+
+
+  /* 
     Posts a best score to the database
 
     Returns { bestScoreId: <id> }

@@ -57,6 +57,28 @@ class BestWord {
 
 
   /* 
+    Finds the tenth best word score for a particular user by game type and best type
+
+    Returns { score }
+  */
+  static async getTenthBest(userId, filters) {
+    const tenthBestScore = await db.query(
+      `
+        SELECT score
+        FROM best_words
+        WHERE user_id = $1
+          AND game_type = $2
+          AND best_type = $3
+        LIMIT 1 OFFSET 10
+      `,
+      [userId, filters.gameType, filters.bestType]
+    );
+
+    return tenthBestScore.rows[0];
+  }
+
+
+  /* 
     Posts a best word to the database
 
     Returns { bestWordId: <id> }

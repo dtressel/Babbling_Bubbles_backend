@@ -9,6 +9,7 @@ const { ensureLoggedIn } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const BestWords = require("../models/best-word-model");
 const bestWordGetSchema = require("../schemas/bestWordGet.json");
+const bestWordGetTenthSchema = require("../schemas/bestWordGetTenth.json");
 const bestWordPostSchema = require("../schemas/bestWordPost.json");
 
 const router = express.Router();
@@ -37,6 +38,34 @@ router.get("/:userId", async function (req, res, next) {
     const { limit, offset, ...filters } = req.query;
     const words = await BestWords.get(req.params.userId, filters, limit, offset);
     return res.json({ words });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+/* 
+  GET /[userId]/tenth-best => { score }
+
+  Returns tenth best word score of a particular game type and best type
+
+  Must provide the following filters:
+  - gameType
+  - bestType
+
+  Authorization required: none
+*/
+
+router.getTenthBest("/:userId/tenth-best", async function (req, res, next) {
+  try {
+    const validator = jsonschema.validate(req.query, bestWordGetTenthSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    const filters = req.query;
+    const score = await BestWords.getTenthBest(req.params.userId, filters);
+    return res.json({ score });
   } catch (err) {
     return next(err);
   }

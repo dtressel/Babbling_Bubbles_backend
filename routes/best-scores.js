@@ -9,6 +9,7 @@ const { ensureLoggedIn } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
 const BestScores = require("../models/best-score-model");
 const bestScoreGetSchema = require("../schemas/bestScoreGet.json");
+const bestScoreGetTenSchema = require("../schemas/bestScoreGetTen.json");
 const bestScorePostSchema = require("../schemas/bestScorePost.json");
 
 const router = express.Router();
@@ -37,6 +38,34 @@ router.get("/:userId", async function (req, res, next) {
     const { limit, offset, ...filters } = req.query;
     const scores = await BestScores.get(req.params.userId, filters, limit, offset);
     return res.json({ scores });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+/* 
+  GET /[userId]/ten-best => { score }
+
+  Returns the ten best scores of a particular game type and score type
+
+  Must provide the following filters:
+  - gameType
+  - scoreType
+
+  Authorization required: none
+*/
+
+router.getTenBest("/:userId/ten-best", async function (req, res, next) {
+  try {
+    const validator = jsonschema.validate(req.query, bestScoreGetTenSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    const filters = req.query;
+    const score = await BestScores.getTenBest(req.params.userId, filters);
+    return res.json({ score });
   } catch (err) {
     return next(err);
   }

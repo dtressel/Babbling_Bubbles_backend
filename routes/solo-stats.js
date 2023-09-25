@@ -49,8 +49,7 @@ router.get("/:userId", async function (req, res, next) {
  * 
  * Provide the following soloStat obj:
  * {
- *   curr_20_wma,
- *   curr_100_wma
+ *    gameType
  * }
  * 
  * This returns soloStatId to allow easy update after soloStat is complete
@@ -58,14 +57,14 @@ router.get("/:userId", async function (req, res, next) {
  * Authorization required: logged in
  **/
 
-router.patch("/game-start/:userId/:gameType", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
+router.patch("/game-start/:userId", ensureCorrectUserInBodyOrAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, soloStatPatchSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const soloStatId = await SoloStat.patchAtGameStart(req.params.userId, req.params.gameType, req.body);
+    const soloStatId = await SoloStat.patchAtGameStart(req.params.userId, req.body.gameType);
     return res.status(200).json({ soloStatId });
   } catch (err) {
     return next(err);

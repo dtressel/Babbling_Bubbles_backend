@@ -63,7 +63,7 @@ class SoloStat {
 
     Returns solo stat id
   */
-  static async patchAtGameStart(userId, gameType, data) {
+  static async patchAtGameStart(userId, gameType) {
     const insertQuery = createInsertQuery('solo_stats', { userId, gameType, ...data }, {}, this.filterKey);
     let valuesArray = insertQuery.valuesArray;
     const updateSetClause = buildUpdateSetClause(data, { num_of_plays: "solo_stats.num_of_plays + 1" }, this.filterKey, valuesArray);
@@ -74,7 +74,7 @@ class SoloStat {
         ${insertQuery.sqlStatement}
         ON CONFLICT (user_id, game_type) DO UPDATE
         ${updateSetClause.sqlStatement}
-        RETURNING id AS "soloStatId"
+        RETURINING id as "SoloStatId"
       `,
       valuesArray
     );
@@ -86,7 +86,7 @@ class SoloStat {
         VALUES (1, 'solo3')
         ON CONFLICT (user_id, game_type) DO UPDATE
         SET num_of_plays = solo_stats.num_of_plays + 1
-        RETURNING id AS "soloStatId"
+        RETURINING id as "SoloStatId"
       `
     */
     return soloStat.rows[0];
@@ -97,7 +97,13 @@ class SoloStat {
   /*
     Updates solo stat information at game end by solo stat id
 
-    Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma }
+    Provide the following data obj:
+    {
+      curr_20_wma, (curr_20_wma will also be set as peak_20_wma if greater)
+      curr_100_wma (curr_100_wma will also be set as peak_20_wma if greater)
+    }
+
+    Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma, isPeak20Wma (may not exist), isPeak100Wma (may not exist) }
   */
   static async patchAtGameEnd(soloStatId, data) {
     const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey);

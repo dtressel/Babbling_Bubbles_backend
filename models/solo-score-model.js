@@ -94,21 +94,28 @@ class SoloScore {
   /*
     Updates solo score information at game end by solo score id
 
-    Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma }
+    Returns { userId, gameType, curr20Wma, curr100Wma }
   */
   static async patchAtGameEnd(soloScoreId, data) {
     const updateSetClause = buildUpdateSetClause({ score: data.score } , { acheived_on: 'CURRENT_DATE' });
     const valuesArray = buildUpdateSetClause.valuesArray;
     // push solo score id into values array to be used in where clause
     valuesArray.push(soloScoreId);
-    await db.query(
+
+    // update solo scores with the new score
+    const playInfoRes = await db.query(
       `
         UPDATE solo_scores
         ${updateSetClause.sqlStatement}
         WHERE id = $${valuesArray.length}
+        RETURNING user_id AS "userId"
+                  game_type AS "gameType"
       `,
       valuesArray
     );
+    const playInfo = playInfoRes.rows[0];
+
+    // get last 100 scores to calculate wmas
     const scores = await db.query(
       `
         SELECT score
@@ -120,6 +127,7 @@ class SoloScore {
       `,
       [data.userId, data.gameType]
     );
+    // get wmas
     const stats = this.wmaPeriods.reduce((accum, curr) => {
       const wmaCalc = calculateWma(scores, curr);
       if (wmaCalc) {
@@ -128,7 +136,7 @@ class SoloScore {
       return accum;
     }, {});
   
-    return { stats };
+    return { ...playInfo, ...stats };
   }
 
 

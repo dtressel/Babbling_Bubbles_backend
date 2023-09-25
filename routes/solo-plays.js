@@ -31,10 +31,13 @@ const router = express.Router();
  *
  * Returns
  * {
- *    soloScoreId,
- *    bstWordScoreBar,
- *    crzWordScoreBar,
- *    lngWordScoreBar
+ *    playData: {
+ *      soloScoreId,
+ *      soloStatId,
+ *      bstWordScoreBar,
+ *      crzWordScoreBar,
+ *      lngWordScoreBar
+ *    }
  * }
  *
  * Authorization required: logged in
@@ -47,8 +50,8 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const playId = await Play.atGameStart(req.body);
-    return res.status(201).json({ playId });
+    const playData = await Play.atGameStart(req.body);
+    return res.status(201).json({ playData });
   } catch (err) {
     return next(err);
   }
@@ -61,9 +64,10 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
  * 
  * Provide the following play obj:
  * {
+ *    soloStatId,
  *    score,
  *    numOfWords,
- *    bestWords: [{ type, word, score, boardState }, ...]
+ *    bestWords: [{ bestType, word, score, boardState }, ...]
  * }
  *
  * Returns
@@ -73,8 +77,11 @@ router.post("/", ensureCorrectUserInBodyOrAdmin, async function (req, res, next)
  *      peak20Wma,
  *      curr100Wma,
  *      peak100Wma,
+ *      avgWordScore,
  *      isPeak20Wma (may not be present),
- *      isPeak100Wma (may not be present)
+ *      isPeak100Wma (may not be present),
+ *      ttlScorePlace (may not be present),
+ *      avgScorePlace (may not be present)
  *    }
  *  }
  *
