@@ -8,7 +8,7 @@ CREATE TABLE users
   bio VARCHAR(300),
   words_found INT NOT NULL DEFAULT 0,
   date_registered DATE NOT NULL DEFAULT CURRENT_DATE,
-  permissions TEXT NOT NULL DEFAULT 'base',
+  permissions TEXT NOT NULL DEFAULT 'base'
   -- 'base', 'admin'
 );
 
@@ -25,7 +25,7 @@ CREATE TABLE best_words
   board_state TEXT,
   found_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
-)
+);
 
 CREATE TABLE best_scores
 (
@@ -38,7 +38,7 @@ CREATE TABLE best_scores
   score INT,
   acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
-)
+);
 
 -- keeps only 100 of each type per user to calculate wmas
 CREATE TABLE solo_scores
@@ -50,7 +50,7 @@ CREATE TABLE solo_scores
   score INT NOT NULL DEFAULT 0,
   acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
-)
+);
 
 -- 1 row per user per game type to store stats for solo timed games
 CREATE TABLE solo_stats
@@ -69,4 +69,4 @@ CREATE TABLE solo_stats
   peak_100_wma_date DATE,
   UNIQUE (user_id, game_type),
   FOREIGN KEY (user_id) REFERENCES users(id)
-)
+);

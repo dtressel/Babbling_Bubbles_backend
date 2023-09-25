@@ -9,9 +9,13 @@ const { NotFoundError } = require("./expressError");
 
 const { authenticateJWT } = require("./middleware/auth-ware");
 const authRoutes = require("./routes/auth");
-const usersRoutes = require("./routes/users");
-const playsRoutes = require("./routes/plays");
+const bestScoresRoutes = require("./routes/best-scores");
+const bestWordsRoutes = require("./routes/best-words");
 const leaderboardsRoutes = require("./routes/leaderboards");
+const soloPlaysRoutes = require("./routes/solo-plays");
+const soloScoresRoutes = require("./routes/solo-scores");
+const soloStatsRoutes = require("./routes/solo-stats");
+const usersRoutes = require("./routes/users");
 
 const morgan = require("morgan");
 
@@ -23,9 +27,14 @@ app.use(morgan("tiny"));
 app.use(authenticateJWT);
 
 app.use("/auth", authRoutes);
-app.use("/users", usersRoutes);
-app.use("/plays", playsRoutes);
+app.use("/best-scores", bestScoresRoutes);
+app.use("/best-words", bestWordsRoutes);
 app.use("/leaderboards", leaderboardsRoutes);
+app.use("/solo-plays", soloPlaysRoutes);
+app.use("/solo-scores", soloScoresRoutes);
+app.use("/solo-stats", soloStatsRoutes);
+app.use("/users", usersRoutes);
+
 
 
 /** Handle 404 errors -- this matches everything */
