@@ -56,7 +56,7 @@ router.get("/:userId", async function (req, res, next) {
   Authorization required: none
 */
 
-router.getTenBest("/:userId/ten-best", async function (req, res, next) {
+router.get("/:userId/ten-best", async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.query, bestScoreGetTenSchema);
     if (!validator.valid) {

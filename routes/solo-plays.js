@@ -9,7 +9,7 @@ const jsonschema = require("jsonschema");
 const express = require("express");
 const { ensureLoggedIn, ensureCorrectUserOrAdmin } = require("../middleware/auth-ware");
 const { BadRequestError } = require("../expressError");
-const Play = require("../models/play-model");
+const SoloPlay = require("../models/solo-play-model");
 const soloPlayPostSchema = require("../schemas/soloPlayPost.json");
 const soloPlayPatchSchema = require("../schemas/soloPlayPatch.json");
 
@@ -49,7 +49,7 @@ router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const playData = await Play.atGameStart(req.params.userId, req.body.gameType);
+    const playData = await SoloPlay.atGameStart(req.params.userId, req.body.gameType);
     return res.status(201).json({ playData });
   } catch (err) {
     return next(err);
@@ -94,7 +94,7 @@ router.patch("/:playId", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.atGameEnd(req.params.playId, req.body, res.locals.user.userId);
+    const stats = await SoloPlay.atGameEnd(req.params.playId, req.body, res.locals.user.userId);
     return res.status(200).json({ stats });
   } catch (err) {
     return next(err);

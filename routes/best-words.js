@@ -56,7 +56,7 @@ router.get("/:userId", async function (req, res, next) {
   Authorization required: none
 */
 
-router.getTenthBest("/:userId/tenth-best", async function (req, res, next) {
+router.get("/:userId/tenth-best", async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.query, bestWordGetTenthSchema);
     if (!validator.valid) {
