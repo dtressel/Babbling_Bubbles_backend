@@ -80,8 +80,6 @@ router.post("/game-start/:userId", ensureCorrectUserOrAdmin, async function (req
  * 
  * Provide the following soloScore obj:
  * {
- *    userId,
- *    gameType, 
  *    score
  * }
  *
@@ -100,7 +98,7 @@ router.patch("/:soloScoreId", ensureAdmin, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.updateAtGameOver(req.params.soloScoreId, req.body);
+    const stats = await SoloScore.updateAtGameOver(req.params.soloScoreId, req.body, res.locals.user.userId);
     return res.status(201).json({ stats });
   } catch (err) {
     return next(err);

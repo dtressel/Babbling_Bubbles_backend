@@ -35,13 +35,13 @@
                 "default": {},
                 "title": "A Schema",
                 "required": [
-                    "type",
+                    "bestType",
                     "word",
                     "score",
                     "boardState"
                 ],
                 "properties": {
-                    "type": {
+                    "bestType": {
                         "type": "string",
                         "default": "",
                         "title": "The type Schema",
@@ -100,7 +100,7 @@
         "score": 354,
         "numOfWords": 21,
         "bestWords": [{
-            "type": "bst",
+            "bestType": "bst",
             "word": "kiwi",
             "score": 60,
             "boardState": "ABcDefghijklmnopqrst122"

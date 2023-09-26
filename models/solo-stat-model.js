@@ -64,17 +64,21 @@ class SoloStat {
     Returns solo stat id
   */
   static async patchAtGameStart(userId, gameType) {
-    const insertQuery = createInsertQuery('solo_stats', { userId, gameType, ...data }, {}, this.filterKey);
+    const insertQuery = createInsertQuery('solo_stats', { userId, gameType }, {}, this.filterKey);
     let valuesArray = insertQuery.valuesArray;
-    const updateSetClause = buildUpdateSetClause(data, { num_of_plays: "solo_stats.num_of_plays + 1" }, this.filterKey, valuesArray);
-    valuesArray = buildUpdateSetClause.valuesArray;
+    const relativeChanges = {
+      num_of_plays: "solo_stats.num_of_plays + 1",
+      last_play: "CURRENT_DATE"
+    }
+    const updateSetClause = buildUpdateSetClause({}, relativeChanges, this.filterKey, valuesArray);
+    valuesArray = updateSetClause.valuesArray;
     // "upsert" statement
     const soloStat = await db.query(
       `
         ${insertQuery.sqlStatement}
         ON CONFLICT (user_id, game_type) DO UPDATE
         ${updateSetClause.sqlStatement}
-        RETURINING id as "SoloStatId"
+        RETURNING id as "SoloStatId"
       `,
       valuesArray
     );
@@ -85,10 +89,11 @@ class SoloStat {
           (user_id, game_type)
         VALUES (1, 'solo3')
         ON CONFLICT (user_id, game_type) DO UPDATE
-        SET num_of_plays = solo_stats.num_of_plays + 1
-        RETURINING id as "SoloStatId"
+        SET num_of_plays = solo_stats.num_of_plays + 1, last_play = CURRENT_DATE
+        RETURNING id as "SoloStatId"
       `
     */
+
     return soloStat.rows[0];
   }
 
@@ -97,7 +102,7 @@ class SoloStat {
   /*
     Updates solo stat information at game end by solo stat id
 
-    Provide the following data obj:
+    Provide the following data obj (all optional):
     {
       curr_20_wma, (curr_20_wma will also be set as peak_20_wma if greater)
       curr_100_wma (curr_100_wma will also be set as peak_20_wma if greater)
@@ -106,6 +111,9 @@ class SoloStat {
     Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma, isPeak20Wma (may not exist), isPeak100Wma (may not exist) }
   */
   static async patchAtGameEnd(soloStatId, data) {
+    /* if there are no wmas because hasn't hit game threshold 
+      (no need to update num_of_plays or last_play because already done at game start) */
+    if (!Object.keys(data).length) return {};
     const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey);
     valuesArray = buildUpdateSetClause.valuesArray;
     // push solo stat id into values array to be used in where clause

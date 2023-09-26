@@ -16,7 +16,7 @@ const soloPlayPatchSchema = require("../schemas/soloPlayPatch.json");
 const router = express.Router();
 
 
-/** POST / { play }  => { play }
+/** POST /[userId] { play }  => { play }
  *
  * Adds a new play when a user starts a new game
  * This prevents the user from closing the browser to avoid posting the score of a bad game
@@ -72,11 +72,11 @@ router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next
  * Returns
  *  {
  *    stats: {
- *      curr20Wma,
- *      peak20Wma,
- *      curr100Wma,
- *      peak100Wma,
- *      avgWordScore,
+ *      avgWordScore (may not be present if score = 0),
+ *      curr20Wma (may not be present if below game threshold),
+ *      peak20Wma (may not be present if below game threshold),
+ *      curr100Wma (may not be present if below game threshold),
+ *      peak100Wma (may not be present if below game threshold),
  *      isPeak20Wma (may not be present),
  *      isPeak100Wma (may not be present),
  *      ttlScorePlace (may not be present),

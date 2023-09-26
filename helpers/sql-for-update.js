@@ -126,7 +126,7 @@ function createInsertQuery(tableName, data, relativeChanges = {}, columnKey = {}
 */ 
 
 function createMultipleInsertQuery(tableName, dataArrays, dataColumns, relativeChanges = {}, valuesArray = []) {
-  if (!Object.keys(data).length) {
+  if (!dataArrays.length) {
     throw new BadRequestError("No data");
   }
   const relativeChangesColumns = Object.keys(relativeChanges);

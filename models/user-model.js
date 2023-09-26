@@ -269,15 +269,11 @@ class User {
       data.newPassword = await bcrypt.hash(data.newPassword, BCRYPT_WORK_FACTOR);
     }
 
-    const { setCols, values } = buildUpdateSetClause(
-        data,
-        {
-          newPassword: "password"
-        });
-    const idVarIdx = "$" + (values.length + 1);
+    const { sqlStatement, valuesArray } = buildUpdateSetClause(data, {}, { newPassword: "password" });
+    const idVarIdx = "$" + (valuesArray.length + 1);
 
     const querySql = `UPDATE users 
-                      SET ${setCols} 
+                      ${sqlStatement} 
                       WHERE id = ${idVarIdx} 
                       RETURNING id AS "userId",
                                 username,
@@ -285,7 +281,7 @@ class User {
                                 bio,
                                 country,
                                 permissions`;
-    const result = await db.query(querySql, [...values, userId]);
+    const result = await db.query(querySql, [...valuesArray, userId]);
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${userId}`);

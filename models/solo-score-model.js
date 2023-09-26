@@ -66,7 +66,7 @@ class SoloScore {
     const soloScore = await db.query(
       `
         INSERT INTO solo_scores (user_id, game_type, score, acheived_on)
-        VALUES ($1, $2, 0, 'CURRENT_DATE')
+        VALUES ($1, $2, 0, CURRENT_DATE)
         RETURNING id AS "soloScoreId"
       `,
       [userId, gameType]
@@ -96,16 +96,17 @@ class SoloScore {
 
     Provide 
       - soloScoreId
-      - data
+      - score
       - loggedInUserId (to confirm that play information to update matches logged in user)
 
     Returns { userId, gameType, curr20Wma, curr100Wma }
   */
-  static async patchAtGameEnd(soloScoreId, data, loggedInUserId) {
-    const updateSetClause = buildUpdateSetClause({ score: data.score } , { acheived_on: 'CURRENT_DATE' });
-    const valuesArray = buildUpdateSetClause.valuesArray;
+  static async patchAtGameEnd(soloScoreId, score, loggedInUserId) {
+    const updateSetClause = buildUpdateSetClause({ score }, { acheived_on: 'CURRENT_DATE' });
+    const valuesArray = updateSetClause.valuesArray;
     // push solo score id into values array to be used in where clause
     valuesArray.push(soloScoreId, loggedInUserId);
+    console.log(valuesArray);
 
     // update solo scores with the new score
     const playInfoRes = await db.query(
@@ -114,7 +115,7 @@ class SoloScore {
         ${updateSetClause.sqlStatement}
         WHERE id = $${valuesArray.length - 1}
           AND user_id = $${valuesArray.length}
-        RETURNING user_id AS "userId"
+        RETURNING user_id AS "userId",
                   game_type AS "gameType"
       `,
       valuesArray
@@ -122,25 +123,28 @@ class SoloScore {
     const playInfo = playInfoRes.rows[0];
 
     // get last 100 scores to calculate wmas
-    const scores = await db.query(
-      `
-        SELECT score
-        FROM solo_scores
-        WHERE user_id = $1
-          AND game_type = $2
-        ORDER BY id DESC
-        LIMIT 100
-      `,
-      [data.userId, data.gameType]
-    );
-    // get wmas
-    const stats = this.wmaPeriods.reduce((accum, curr) => {
-      const wmaCalc = calculateWma(scores, curr);
-      if (wmaCalc) {
-        return { ...accum, [`curr${curr}Wma`]: wmaCalc };
-      }
-      return accum;
-    }, {});
+    let stats = {};
+    if (playInfo) {
+      const scores = await db.query(
+        `
+          SELECT score
+          FROM solo_scores
+          WHERE user_id = $1
+            AND game_type = $2
+          ORDER BY id DESC
+          LIMIT 100
+        `,
+        [loggedInUserId, playInfo.gameType]
+      );
+      // get wmas
+      stats = this.wmaPeriods.reduce((accum, curr) => {
+        const wmaCalc = calculateWma(scores.rows, curr);
+        if (wmaCalc) {
+          return { ...accum, [`curr${curr}Wma`]: wmaCalc };
+        }
+        return accum;
+      }, {});
+    }
   
     return { ...playInfo, ...stats };
   }

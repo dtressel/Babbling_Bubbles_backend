@@ -1,3 +1,9 @@
+/* 
+  Parameters:
+    scores: [ {score: <score> }, ...]
+    wmaPeriod: 20 (example)
+*/
+
 function calculateWma(scores, wmaPeriod) {
   // if not enough scores to calculate Period, return null
   if (scores.length < wmaPeriod) return null;

@@ -20,7 +20,7 @@
                 "free"
             ]
         },
-        "scoreType": {
+        "bestType": {
             "type": "string",
             "enum": [
                 "bst",
@@ -42,7 +42,7 @@
     "additionalProperties": false,
     "examples": [{
         "gameType": "solo3",
-        "scoreType": "bst",
+        "bestType": "bst",
         "word": "kittens",
         "score": 132,
         "boardState": "ABcDefghijklmnopqrst122"
