@@ -83,7 +83,7 @@ class BestScore {
   */
   static async post(userId, data) {
     // create arrays of data values
-    const dataArrays = data.words.map((scoreObj) => {
+    const dataArrays = data.scores.map((scoreObj) => {
       return [userId, data.gameType, scoreObj.scoreType, scoreObj.score];
     });
     const dataColumns = ['user_id', 'game_type', 'score_type', 'score'];
@@ -116,7 +116,7 @@ class BestScore {
       await db.query(
         `
           DELETE FROM best_scores
-          WERE id IN (${idsToDelete.join(', ')})
+          WHERE id IN (${idsToDelete.join(', ')})
         `
       );
 

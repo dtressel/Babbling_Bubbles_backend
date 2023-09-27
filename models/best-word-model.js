@@ -120,7 +120,7 @@ class BestWord {
       await db.query(
         `
           DELETE FROM best_words
-          WERE id IN (${idsToDelete.join(', ')})
+          WHERE id IN (${idsToDelete.join(', ')})
         `
       );
     }
