@@ -115,7 +115,7 @@ class SoloStat {
       (no need to update num_of_plays or last_play because already done at game start) */
     if (!Object.keys(data).length) return {};
     const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey);
-    valuesArray = buildUpdateSetClause.valuesArray;
+    const valuesArray = updateSetClause.valuesArray;
     // push solo stat id into values array to be used in where clause
     valuesArray.push(soloStatId);
     let soloStat = await db.query(
@@ -123,10 +123,13 @@ class SoloStat {
         UPDATE solo_stats
         ${updateSetClause.sqlStatement}
         WHERE id = $${valuesArray.length}
-        RETURNING curr_20_wma AS "curr20Wma",
-                  peak_20_wma AS "peak20Wma",
-                  curr_100_wma AS "curr100Wma",
-                  peak_100_wma AS "peak100Wma",
+        RETURNING ${data.curr100Wma ? `
+                    curr_100_wma AS "curr100Wma",
+                    peak_100_wma AS "peak100Wma",`
+                    : ''
+                  }
+                  curr_20_wma AS "curr20Wma",
+                  peak_20_wma AS "peak20Wma"
       `,
       valuesArray
     );
