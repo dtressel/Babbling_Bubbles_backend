@@ -76,7 +76,7 @@ class SoloPlay {
 
     if (data.score) {
       promiseNames2.push('bestTtlScores');
-      newPromises2.push(BestScore.getTenBest(userId, { gameType, scoreType: 'bst' }));
+      newPromises2.push(BestScore.getTenBest(userId, { gameType, scoreType: 'ttl' }));
     }
 
     if (data.numOfWords >= 15) {
@@ -97,13 +97,17 @@ class SoloPlay {
     }, {});
 
     const returnObj = { ...(results2.soloStats || {}) }; /* adds curr, peak, and isPeak */
+
     // array to contain any best score updates, may remain empty
     const bestScoresUpdates = [];
-    // See if total score is in top ten
-    // results2.bestTtlScores may be undefined or an empty array
-    if (data.score > results2.bestTtlScores?.at(-1)?.score) {
-      let i = results2.bestTtlScores.length - 2;
-      while (data.score > results2.bestTtlScores[i].score) {
+    // If total score is in top ten or if there are not yet any top scores
+    // (results2.bestTtlScores may be undefined or an empty array)
+    if (
+      data.score > results2.bestTtlScores?.at(-1)?.score
+      || results2.bestTtlScores?.length < 10
+    ) {
+      let i = results2.bestTtlScores.length - 1;
+      while (i >= 0 && data.score > results2.bestTtlScores[i].score) {
         i--;
       }
       const ttlPlace = i + 2;
@@ -115,9 +119,12 @@ class SoloPlay {
       const avgWordScore = Math.round(data.score / data.numOfWords * 100) / 100;
       returnObj.avgWordScore = avgWordScore;
       // See if average word score is in top ten
-      if (avgWordScore > results2.bestAvgScores?.at(-1)?.score) {
-        let i = results2.bestAvgScores.length - 2;
-        while (avgWordScore > results2.bestAvgScores[i].score) {
+      if (
+        avgWordScore > results2.bestAvgScores?.at(-1)?.score
+        || results2.bestAvgScores?.length < 10
+      ) {
+        let i = results2.bestAvgScores.length - 1;
+        while (i >= 0 && avgWordScore > results2.bestAvgScores[i].score) {
           i--;
         }
         const avgPlace = i + 2;
