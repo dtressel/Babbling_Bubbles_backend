@@ -35,7 +35,7 @@ CREATE TABLE best_scores
   -- solo3, solo10, free
   score_type TEXT,
   -- ttl, avg
-  score INT,
+  score FLOAT,
   acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
