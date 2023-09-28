@@ -35,7 +35,7 @@ CREATE TABLE best_scores
   -- solo3, solo10, free
   score_type TEXT,
   -- ttl, avg
-  score FLOAT,
+  score DOUBLE PRECISION,
   acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -60,11 +60,11 @@ CREATE TABLE solo_stats
   -- solo3, solo10
   num_of_plays INT NOT NULL DEFAULT 1,
   last_play DATE NOT NULL DEFAULT CURRENT_DATE,
-  curr_20_wma FLOAT,
-  peak_20_wma FLOAT,
+  curr_20_wma REAL,
+  peak_20_wma DOUBLE PRECISION,
   peak_20_wma_date DATE,
-  curr_100_wma FLOAT,
-  peak_100_wma FLOAT,
+  curr_100_wma REAL,
+  peak_100_wma DOUBLE PRECISION,
   peak_100_wma_date DATE,
   current BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (user_id, game_type),
