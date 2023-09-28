@@ -31,11 +31,11 @@ const router = express.Router();
  * Returns
  * {
  *    playData: {
- *      soloScoreId,
- *      soloStatId,
+ *      playId,
  *      bstWordScoreBar,
  *      crzWordScoreBar,
- *      lngWordScoreBar
+ *      lngWordScoreBar,
+ *      tenBestWords (for "free" gameType only)
  *    }
  * }
  *

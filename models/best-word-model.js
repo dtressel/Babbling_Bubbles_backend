@@ -56,6 +56,41 @@ class BestWord {
   }
 
 
+    /* 
+    Finds best words (only word and score) for a particular user
+    Results also reduced by filter, by limit (if exists) and by offset (if exists)
+
+    Returns 
+      [
+        { gameType, bestType, word, score, boardState, date },
+        ...
+      ]
+  */
+      static async getWordScore(userId, filters, limit, offset) {
+        // set initial valuesArray to build on
+        let valuesArray = [userId]
+        // build where clause based on where filters
+        const whereClauseBuild = buildWhereClauses(filters, this.filterKey, valuesArray, true);
+        valuesArray = whereClauseBuild.valuesArray;
+        // build limit/offset statement
+        const limitOffsetBuild = buildLimitOffsetClause(limit, offset, valuesArray);
+        valuesArray = limitOffsetBuild.valuesArray;
+        const bestWords = await db.query(
+          `
+            SELECT word,
+                   score
+            FROM best_words
+            WHERE user_id = $1
+              ${whereClauseBuild.whereString}
+            ${limitOffsetBuild.sqlStatement}
+          `,
+          valuesArray
+        );
+    
+        return bestWords.rows;
+      }
+
+
   /* 
     Finds the tenth best word score for a particular user by game type and best type
 

@@ -149,11 +149,11 @@ class SoloStat {
     const peakUpdates = {};
     const peakRelativeChanges = {};
     for (const wma of [20, 100]) {
-      if (soloStat.rows[0][`curr${wma}Wma`] > soloStat.rows[0][`peak${wma}Wma`]) {
-        peakUpdates[`peak_${wma}_wma`] = soloStat.rows[0][`curr${wma}Wma`];
+      if (data[`curr${wma}Wma`] > soloStat.rows[0][`peak${wma}Wma`]) {
+        peakUpdates[`peak_${wma}_wma`] = data[`curr${wma}Wma`];
         peakRelativeChanges[`peak_${wma}_wma_date`] = 'CURRENT_DATE';
         // update soloStat which will be returned, update to database happens below
-        soloStat.rows[0][`peak${wma}Wma`] = soloStat.rows[0][`curr${wma}Wma`];
+        soloStat.rows[0][`peak${wma}Wma`] = data[`curr${wma}Wma`];
         soloStat.rows[0][`isPeak${wma}Wma`] = true;
       }
     }
