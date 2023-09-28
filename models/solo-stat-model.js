@@ -14,7 +14,7 @@ class SoloStat {
     userId: "user_id",
     gameType: "game_type",
     curr20Wma: "curr_20_wma",
-    curr100Wma: "curr_100_wma",
+    curr100Wma: "curr_100_wma"
   }
 
 
@@ -68,17 +68,17 @@ class SoloStat {
     let valuesArray = insertQuery.valuesArray;
     const relativeChanges = {
       num_of_plays: "solo_stats.num_of_plays + 1",
-      last_play: "CURRENT_DATE"
+      last_play: "CURRENT_DATE",
+      current: "false"
     }
     const updateSetClause = buildUpdateSetClause({}, relativeChanges, this.filterKey, valuesArray);
     valuesArray = updateSetClause.valuesArray;
     // "upsert" statement
-    const soloStat = await db.query(
+    await db.query(
       `
         ${insertQuery.sqlStatement}
         ON CONFLICT (user_id, game_type) DO UPDATE
         ${updateSetClause.sqlStatement}
-        RETURNING id as "SoloStatId"
       `,
       valuesArray
     );
@@ -90,11 +90,10 @@ class SoloStat {
         VALUES (1, 'solo3')
         ON CONFLICT (user_id, game_type) DO UPDATE
         SET num_of_plays = solo_stats.num_of_plays + 1, last_play = CURRENT_DATE
-        RETURNING id as "SoloStatId"
       `
     */
 
-    return soloStat.rows[0];
+    return { soloStat: 'updated' };
   }
 
 
@@ -102,32 +101,45 @@ class SoloStat {
   /*
     Updates solo stat information at game end by solo stat id
 
-    Provide the following data obj (all optional):
+    Provide the following data obj:
     {
-      curr_20_wma, (curr_20_wma will also be set as peak_20_wma if greater)
-      curr_100_wma (curr_100_wma will also be set as peak_20_wma if greater)
+      curr20Wma, (curr20Wma will also be set as peak20Wma if greater)
+      curr100Wma (curr100Wma will also be set as peak100Wma if greater)
     }
 
     Returns { curr20Wma, peak20Wma, curr100Wma, peak100Wma, isPeak20Wma (may not exist), isPeak100Wma (may not exist) }
   */
-  static async patchAtGameEnd(soloStatId, data) {
-    /* if there are no wmas because hasn't hit game threshold 
+  static async patchAtGameEnd(userId, gameType, data) {
+    /* if there are no wmas because hasn't hit game threshold, only update current 
       (no need to update num_of_plays or last_play because already done at game start) */
-    if (!Object.keys(data).length) return {};
-    const updateSetClause = buildUpdateSetClause(data, {}, this.filterKey);
+    if (!Object.keys(data).length) {
+      await db.query(
+        `
+          UPDATE solo_stats
+          SET current = true
+          WHERE user_id = $1
+            AND game_type = $2
+          RETURNING user_id
+        `,
+        [userId, gameType]
+      );
+      return {}
+    }
+
+    const updateSetClause = buildUpdateSetClause(data, { current: "true" }, this.filterKey);
     const valuesArray = updateSetClause.valuesArray;
     // push solo stat id into values array to be used in where clause
-    valuesArray.push(soloStatId);
+    valuesArray.push(userId, gameType);
     let soloStat = await db.query(
       `
         UPDATE solo_stats
         ${updateSetClause.sqlStatement}
-        WHERE id = $${valuesArray.length}
+        WHERE user_id = $${valuesArray.length - 1}
+          AND game_type = $${valuesArray.length}
         RETURNING ${data.curr100Wma ? `
                     curr_100_wma AS "curr100Wma",
                     peak_100_wma AS "peak100Wma",`
-                    : ''
-                  }
+                    : ''}
                   curr_20_wma AS "curr20Wma",
                   peak_20_wma AS "peak20Wma"
       `,
@@ -149,41 +161,19 @@ class SoloStat {
     if (Object.keys(peakUpdates).length) {
       const updateSetClause2 = buildUpdateSetClause(peakUpdates, peakRelativeChanges, this.filterKey);
       const valuesArray2 = updateSetClause2.valuesArray;
-      valuesArray2.push(soloStatId);
+      valuesArray2.push(userId, gameType);
       await db.query(
         `
           UPDATE solo_stats
           ${updateSetClause2.sqlStatement}
-          WHERE id = $${valuesArray2.length}
+          WHERE user_id = $${valuesArray.length - 1}
+            AND game_type = $${valuesArray.length}
         `,
         valuesArray2
       );
     }
   
     return soloStat.rows[0];
-  }
-
-
-  /* 
-    Deletes a best word by soloStatId
-
-    Returns { deleted: <soloStatId> }
-  */
-  static async delete(soloStatId) {
-    let result = await db.query(
-      `
-        DELETE
-        FROM solo_stats
-        WHERE id = $1
-        RETURNING id
-      `,
-      [soloStatId]
-    );
-    const soloStat = result.rows[0];
-
-    if (!soloStat) throw new NotFoundError(`No soloStat: ${soloStatId}`);
-
-    return { deleted: soloStatId };
   }
 }
 

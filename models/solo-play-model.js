@@ -20,7 +20,7 @@ class SoloPlay {
 
     const results = await Promise.all([soloScorePromise, soloStatPromise, ...bestTypePromises]);
 
-    const gameData = { ...results[0], ...results[1] };
+    const gameData = { playId: results[0].soloScoreId };
 
     for (let i = 0; i < this.bestTypes.length; i++) {
       const bestType = this.bestTypes[i];
@@ -33,7 +33,6 @@ class SoloPlay {
   /*
     Provide the following data object:
     {
-      soloStatId,
       score,
       numOfWords,
       bestWords: [{ bestType, word, score, boardState }, ...]
@@ -64,10 +63,8 @@ class SoloPlay {
     const newPromises2 = [];
     const promiseNames2 = [];
 
-    if (Object.keys(currWmas).length) {
-      promiseNames2.push('soloStats');
-      newPromises2.push(SoloStat.patchAtGameEnd(data.soloStatId, currWmas));
-    }
+    promiseNames2.push('soloStats');
+    newPromises2.push(SoloStat.patchAtGameEnd(userId, gameType, currWmas));
 
     if (data.numOfWords) {
       promiseNames2.push('user');

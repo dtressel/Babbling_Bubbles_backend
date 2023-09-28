@@ -63,7 +63,6 @@ router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next
  * 
  * Provide the following play obj:
  * {
- *    soloStatId,
  *    score,
  *    numOfWords,
  *    bestWords: [{ bestType, word, score, boardState }, ...]

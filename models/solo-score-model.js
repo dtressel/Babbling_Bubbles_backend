@@ -106,7 +106,6 @@ class SoloScore {
     const valuesArray = updateSetClause.valuesArray;
     // push solo score id into values array to be used in where clause
     valuesArray.push(soloScoreId, loggedInUserId);
-    console.log(valuesArray);
 
     // update solo scores with the new score
     const playInfoRes = await db.query(

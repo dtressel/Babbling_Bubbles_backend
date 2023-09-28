@@ -9,7 +9,8 @@ const { ensureAdmin, ensureCorrectUserOrAdmin } = require("../middleware/auth-wa
 const { BadRequestError } = require("../expressError");
 const SoloStat = require("../models/solo-stat-model");
 const soloStatGetSchema = require("../schemas/soloStatGet.json");
-const soloStatPatchSchema = require("../schemas/soloStatPatch.json");
+const soloStatPatchStartSchema = require("../schemas/soloStatPatchStart.json");
+const soloStatPatchEndSchema = require("../schemas/soloStatPatchEnd.json");
 
 const router = express.Router();
 
@@ -59,7 +60,7 @@ router.get("/:userId", async function (req, res, next) {
 
 router.patch("/game-start/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, soloStatPatchSchema);
+    const validator = jsonschema.validate(req.body, soloStatPatchStartSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
@@ -78,8 +79,9 @@ router.patch("/game-start/:userId", ensureCorrectUserOrAdmin, async function (re
  * 
  * Provide the following soloStat obj:
  * {
- *   curr_20_wma, (curr_20_wma will also be set as peak_20_wma if greater)
- *   curr_100_wma (curr_100_wma will also be set as peak_20_wma if greater)
+ *   game_type,
+ *   curr20Wma, (curr20Wma will also be set as peak20Wma if greater)
+ *   curr100Wma (curr100Wma will also be set as peak100Wma if greater)
  * }
  *
  * This returns newly calculated stats:
@@ -90,30 +92,16 @@ router.patch("/game-start/:userId", ensureCorrectUserOrAdmin, async function (re
  * Authorization required: same user as user in patched stat
  **/
 
-router.patch("/game-end/:soloStatId", ensureAdmin, async function (req, res, next) {
+router.patch("/game-end/:userId", ensureAdmin, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, soloStatPatchSchema);
+    const validator = jsonschema.validate(req.body, soloStatPatchEndSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    const stats = await Play.patchAtGameEnd(req.params.soloStatId, req.body);
+    const { gameType, ...data } = req.body
+    const stats = await Play.patchAtGameEnd(req.params.userId, gameType, data);
     return res.status(201).json({ stats });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-
-/** DELETE /[soloStatId]  =>  { deleted: soloStatId }
- *
- * Authorization required: admin
- **/
-
-router.delete("/:soloStatId", ensureAdmin, async function (req, res, next) {
-  try {
-    await Play.delete(req.params.soloStatId);
-    return res.json({ deleted: req.params.soloStatId });
   } catch (err) {
     return next(err);
   }

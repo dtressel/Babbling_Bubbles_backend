@@ -55,7 +55,6 @@ CREATE TABLE solo_scores
 -- 1 row per user per game type to store stats for solo timed games
 CREATE TABLE solo_stats
 (
-  id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   game_type TEXT NOT NULL,
   -- solo3, solo10
@@ -67,6 +66,7 @@ CREATE TABLE solo_stats
   curr_100_wma FLOAT,
   peak_100_wma FLOAT,
   peak_100_wma_date DATE,
-  UNIQUE (user_id, game_type),
+  current BOOLEAN NOT NULL DEFAULT false,
+  PRIMARY KEY (user_id, game_type),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
