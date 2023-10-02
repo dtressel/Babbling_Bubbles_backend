@@ -86,7 +86,6 @@ class SoloPlay {
       newPromises2.push(BestScore.getTenBest(userId, { gameType, scoreType: 'avg' }));
     }
 
-
     if (data.bestWords.length) {
       promiseNames2.push('bestWords');
       newPromises2.push(BestWord.post(userId, { gameType, words: data.bestWords })); /* returns nothing */
@@ -178,19 +177,19 @@ class SoloPlay {
       newPromises2.push(BestScore.getTenBest(userId, { gameType, scoreType: 'avg' }));
     }
 
-
     if (data.bestWords.length) {
       promiseNames2.push('bestWords');
       newPromises2.push(BestWord.post(userId, { gameType, words: data.bestWords })); /* returns nothing */
     }
 
+    // await all promises in newPromises2
     const results2Arr = await Promise.all(newPromises2);
     // change results 2 from an array of values to object of key/value pairs
     const results2 = results2Arr.reduce((accum, curr, idx) => {
       return { ...accum, [promiseNames2[idx]]: curr };
     }, {});
 
-    const returnObj = { ...(results2.soloStats || {}) }; /* adds curr, peak, and isPeak */
+    const returnObj = {};
 
     // array to contain any best score updates, may remain empty
     const bestScoresUpdates = [];

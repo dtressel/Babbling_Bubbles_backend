@@ -42,6 +42,15 @@ class User {
       // compare hashed password to a new hash from password
       const isValid = await bcrypt.compare(password, user.password);
       if (isValid === true) {
+        // update last_active
+        await db.query(
+          `
+            UPDATE users
+            SET last_active = CURRENT_DATE
+            WHERE id = $1
+          `,
+          [user.userId]
+        )
         delete user.password;
         return user;
       }
@@ -75,7 +84,7 @@ class User {
 
 
 
-    /** Checks for correct username for user that admin is trying to delete
+  /** Checks for correct username for user that admin is trying to delete
    *
    * Throws BadRequestError if username is incorrect
    *
@@ -290,30 +299,31 @@ class User {
   }
 
 
-    /** Update a user's words found number after game play.
+  /** Update a user's words found number after game play, and updates last_active
    *
    * Method must be provided: userId, words found increment amount
    *
    * Returns { userId }
    */
 
-    static async updateWordsFound(userId, increment) {  
-      const result = await db.query(
-        `
-          UPDATE users
-          SET words_found = words_found + $1
-          WHERE id = $2
-          RETURNING id AS "userId"
-        `,
-        [increment, userId]
-      );
+  static async updateWordsFound(userId, increment) {  
+    const result = await db.query(
+      `
+        UPDATE users
+        SET words_found = words_found + $1,
+            last_active = CURRENT_DATE
+        WHERE id = $2
+        RETURNING id AS "userId"
+      `,
+      [increment, userId]
+    );
 
-      const user = result.rows[0];
-  
-      if (!user) throw new NotFoundError(`No user: ${userId}`);
-  
-      return user;
-    }
+    const user = result.rows[0];
+
+    if (!user) throw new NotFoundError(`No user: ${userId}`);
+
+    return user;
+  }
 
   /** Delete given user from database; returns undefined. */
 

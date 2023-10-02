@@ -7,6 +7,7 @@ CREATE TABLE users
   country TEXT,
   bio VARCHAR(300),
   words_found INT NOT NULL DEFAULT 0,
+  last_active DATE NOT NULL DEFAULT CURRENT_DATE,
   date_registered DATE NOT NULL DEFAULT CURRENT_DATE,
   permissions TEXT NOT NULL DEFAULT 'base'
   -- 'base', 'admin'
