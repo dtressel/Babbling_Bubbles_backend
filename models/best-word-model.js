@@ -70,7 +70,7 @@ class BestWord {
         // set initial valuesArray to build on
         let valuesArray = [userId]
         // build where clause based on where filters
-        const whereClauseBuild = buildWhereClauses(filters, this.filterKey, valuesArray, true);
+        const whereClauseBuild = buildWhereClauses(filters, this.filterKey, valuesArray, false);
         valuesArray = whereClauseBuild.valuesArray;
         // build limit/offset statement
         const limitOffsetBuild = buildLimitOffsetClause(limit, offset, valuesArray);
@@ -81,7 +81,7 @@ class BestWord {
                    score
             FROM best_words
             WHERE user_id = $1
-              ${whereClauseBuild.whereString}
+              ${whereClauseBuild.whereClause}
             ${limitOffsetBuild.sqlStatement}
           `,
           valuesArray

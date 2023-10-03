@@ -5,6 +5,7 @@ const SoloStat = require("../models/solo-stat-model");
 const BestScore = require("../models/best-score-model");
 const BestWord = require("../models/best-word-model");
 const User = require("../models/user-model");
+const { UnauthorizedError } = require("../expressError");
 
 /** Related functions for plays. */
 
@@ -12,7 +13,7 @@ class SoloPlay {
   static bestTypes = ['bst', 'lng', 'crz'];
 
   static async atGameStart(userId, gameType) {
-    if (gameType = 'free') return await this.atGameStartFree(userId);
+    if (gameType === 'free') return await this.atGameStartFree(userId);
 
     const soloScorePromise = SoloScore.postAtGameStart(userId, gameType);
     const soloStatPromise = SoloStat.patchAtGameStart(userId, gameType);
@@ -56,7 +57,7 @@ class SoloPlay {
   */
 
   static async atGameEnd(playId, data, loggedInUserId) {
-    if (playId == 0) return await this.atGameStartFree(data, loggedInUserId);
+    if (playId === '0') return await this.atGameEndFree(data, loggedInUserId);
 
     const userInfoAndWmas = await SoloScore.patchAtGameEnd(playId, data.score, loggedInUserId);
     const { userId, gameType, ...currWmas } = userInfoAndWmas;
@@ -172,14 +173,19 @@ class SoloPlay {
       newPromises2.push(User.updateWordsFound(userId, data.numOfWords)); /* returns nothing */
     } 
 
+    if (data.score) {
+      promiseNames2.push('bestTtlScores');
+      newPromises2.push(BestScore.getTenBest(userId, { gameType: "free", scoreType: 'ttl' }));
+    }
+
     if (data.numOfWords >= 15) {
       promiseNames2.push('bestAvgScores');
-      newPromises2.push(BestScore.getTenBest(userId, { gameType, scoreType: 'avg' }));
+      newPromises2.push(BestScore.getTenBest(userId, { gameType: "free", scoreType: 'avg' }));
     }
 
     if (data.bestWords.length) {
       promiseNames2.push('bestWords');
-      newPromises2.push(BestWord.post(userId, { gameType, words: data.bestWords })); /* returns nothing */
+      newPromises2.push(BestWord.post(userId, { gameType: "free", words: data.bestWords })); /* returns nothing */
     }
 
     // await all promises in newPromises2
@@ -227,7 +233,7 @@ class SoloPlay {
     }
     // if either type of score is in top ten, update best scores table
     if (bestScoresUpdates.length) {
-      await BestScore.post(userId, { gameType, scores: bestScoresUpdates });
+      await BestScore.post(userId, { gameType: "free", scores: bestScoresUpdates });
     }
 
     return returnObj;
