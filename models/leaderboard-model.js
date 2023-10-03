@@ -53,13 +53,16 @@ class Leaderboard {
       for (const statType of wmaStatTypes) {
         promises.wmaStats[`${statType}${wma}Wma`] = db.query(
           `
-            SELECT username,
-                   game_type AS "gameType",
-                   ${statType}_${wma}_wma AS "${statType}${wma}Wma",
-                   ${statType === 'peak' ? `TO_CHAR(peak_${wma}_wma_date, 'Mon DD, YYYY') AS "peak${wma}WmaDate",` : ''}
-            FROM solo_stats
-            WHERE game_type = $1
-            ORDER BY ${statType}_${wma}_wma DESC
+            SELECT u.username,
+                   ss.game_type AS "gameType",
+                   ss.${statType}_${wma}_wma AS "${statType}${wma}Wma"
+                   ${statType === 'peak' ? `, TO_CHAR(ss.peak_${wma}_wma_date, 'Mon DD, YYYY') AS "peak${wma}WmaDate"` : ''}
+            FROM solo_stats AS "ss"
+            INNER JOIN users AS "u"
+              ON ss.user_id = u.id
+            WHERE ss.game_type = $1
+              AND ss.${statType}_${wma}_wma > 0
+            ORDER BY ss.${statType}_${wma}_wma DESC
             LIMIT 10
           `,
           [gameType]
@@ -69,7 +72,7 @@ class Leaderboard {
     for (const type of bestScoreTypes) {
       promises.bestScores[type] = db.query(
         `
-          SELECT u.username
+          SELECT u.username,
                  bs.game_type AS "gameType",
                  bs.score_type AS "scoreType",
                  bs.score,
@@ -78,7 +81,7 @@ class Leaderboard {
           INNER JOIN users AS "u"
             ON bs.user_id = u.id
           WHERE bs.game_type = $1
-            AND bs.score_type = ${type}
+            AND bs.score_type = '${type}'
           ORDER BY bs.score DESC
           LIMIT 10
         `,
@@ -88,7 +91,7 @@ class Leaderboard {
     for (const type of bestWordTypes) {
       promises.bestWords[type] = db.query(
         `
-          SELECT u.username
+          SELECT u.username,
                  bw.game_type AS "gameType",
                  bw.best_type AS "bestType",
                  bw.word,
@@ -99,7 +102,7 @@ class Leaderboard {
           INNER JOIN users AS "u"
             ON bw.user_id = u.id
           WHERE bw.game_type = $1
-            AND bw.best_type = ${type}
+            AND bw.best_type = '${type}'
           ORDER BY bw.score DESC
           LIMIT 10
         `,

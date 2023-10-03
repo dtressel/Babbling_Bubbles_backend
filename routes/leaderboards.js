@@ -2,6 +2,8 @@
 
 /** Routes for leaderboards. */
 
+const jsonschema = require("jsonschema");
+
 const express = require("express");
 const Leaderboard = require("../models/leaderboard-model");
 const leaderboardGetSchema = require("../schemas/leaderboardGet.json");
@@ -40,7 +42,7 @@ router.get("/", async function (req, res, next) {
       throw new BadRequestError(errs);
     }
     if (!filters.gameType) filters.gameType = "solo3";
-    const leaderboards = await Leaderboard.getByType(gameType);
+    const leaderboards = await Leaderboard.getByType(filters);
     return res.json({ leaderboards });
   } catch (err) {
     return next(err);
