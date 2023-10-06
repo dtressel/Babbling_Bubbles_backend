@@ -24,6 +24,8 @@ function combineWhereClauses(clauseArray) {
 
   values from the filters will fill the valuesArray, which may already contain values
 
+  filters values may be a single value or an array of values
+
   values array also helps the function know where to start for $<num>
 
   set firstClause as false if you already have a manually written WHERE clause and want to add
@@ -34,18 +36,24 @@ function combineWhereClauses(clauseArray) {
   If filters object is empty, it will return an empty string and original valuesArray
 */
 
-function buildWhereClauses(filters, jsToSqlKey = {}, valuesArray = [], firstClause = true) {
+function buildWhereClauses(filters, jsToSqlKey = {}, valuesArray = [], firstClause = true, conjunction = "AND") {
   let whereString = '';
   // build whereString and valuesArray for each filter
   for (const filter in filters) {
-    if (firstClause) {
-      whereString = `WHERE ${jsToSqlKey[filter]} = $${valuesArray.length + 1}`
-      firstClause = false;
-    } else {
-      if (whereString) whereString += ' ';
-      whereString += `AND ${jsToSqlKey[filter]} = $${valuesArray.length + 1}`
+    // since filters values may be a value or array of values, turn values into an array
+    if (!Array.isArray(filters[filter])) {
+      filters[filter] = [filters[filter]];
     }
-    valuesArray.push(filters[filter]);
+    for (const value of filters[filter]) {
+      if (firstClause) {
+        whereString = `WHERE ${jsToSqlKey[filter]} = $${valuesArray.length + 1}`
+        firstClause = false;
+      } else {
+        if (whereString) whereString += ' ';
+        whereString += `${conjunction} ${jsToSqlKey[filter]} = $${valuesArray.length + 1}`
+      }
+      valuesArray.push(value);
+    }
   }
   return { whereClause: whereString, valuesArray }
 }
