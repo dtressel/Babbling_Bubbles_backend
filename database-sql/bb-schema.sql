@@ -41,18 +41,6 @@ CREATE TABLE best_scores
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- keeps only 100 of each type per user to calculate wmas
-CREATE TABLE solo_scores
-(
-  id BIGSERIAL PRIMARY KEY,
-  user_id INT NOT NULL,
-  game_type TEXT,
-  -- solo3, solo10
-  score INT NOT NULL DEFAULT 0,
-  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
 -- 1 row per user per game type to store stats for solo timed games
 CREATE TABLE solo_stats
 (
@@ -69,5 +57,17 @@ CREATE TABLE solo_stats
   peak_100_wma_date DATE,
   current BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (user_id, game_type),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- keeps only 100 of each type per user to calculate wmas
+CREATE TABLE solo_scores
+(
+  id BIGSERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  game_type TEXT,
+  -- solo3, solo10
+  score INT NOT NULL DEFAULT 0,
+  acheived_on DATE NOT NULL DEFAULT CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
