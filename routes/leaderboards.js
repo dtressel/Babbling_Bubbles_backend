@@ -208,6 +208,7 @@ router.get("/", async function (req, res, next) {
     if (filters.userIds) {
       filters.userIds = filters.userIds.map(id => +id);
     }
+    // validate coerced query paramaters
     const validator = jsonschema.validate(filters, leaderboardGetSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
