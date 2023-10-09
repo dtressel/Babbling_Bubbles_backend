@@ -14,6 +14,7 @@ const userUpdateSpecialSchema = require("../schemas/userUpdateSpecial.json");
 const userAddSchema = require("../schemas/userAdd.json");
 const userJustPasswordSchema = require("../schemas/userJustPassword.json");
 const userJustUsernameSchema = require("../schemas/userJustUsername.json");
+const userGetProfileSchema = require("../schemas/userGetProfile.json");
 
 const router = express.Router();
 
@@ -210,6 +211,10 @@ router.patch("/:userId/admin", ensureAdmin, async function (req, res, next) {
 });
 
 /** GET /[userId]/stats => { user }
+ * 
+ * Provide the following optional query parameters:
+ *  - gameType (solo3, solo10, free), defaults to solo3
+ *  - includeGeneralInfo (true, false), defaults to true
  *
  * Returns { 
  *   numOfPlaysSingle,
@@ -225,9 +230,58 @@ router.patch("/:userId/admin", ensureAdmin, async function (req, res, next) {
  * Authorization required: none
  **/
 
-router.get("/:userId/stats", async function (req, res, next) {
+router.get("/:userId/profile-data", async function (req, res, next) {
   try {
-    const stats = await User.getStats(req.params.userId);
+    const filters = req.query;
+    const validator = jsonschema.validate(filters, userGetProfileSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    if (!filters.gameType) filters.gameType = 'solo3';
+    if (filters.includeGeneralInfo === undefined) filters.includeGeneralInfo = true;
+    else filters.includeGeneralInfo = (filters.includeGeneralInfo === "true");
+    const stats = await User.getProfileData(req.params.userId, filters);
+    return res.json(stats);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+
+/** GET /[userId]/stats => { user }
+ *
+ * Provide the following query parameters:
+ *  - gameType (solo3, solo10, free)
+ *  - excludeGeneralInfo (true, false)
+ *
+ * Returns { 
+ *   numOfPlaysSingle,
+ *   curr10Wma,
+ *   curr100Wma,
+ *   best10Wma,
+ *   best100Wma
+ *   top10SinglePlays: [{ playId, playTime, score, numOfWords, bestWord, bestWordScore }, ...],
+ *   top10Words: [{ playId, playTime, bestWord, bestWordScore, bestWordBoardState }, ...],
+ *   top10AvgWordScores: [{ playId, playTime, avgWordScore, score, numOfWords }]
+ * }
+ *
+ * Authorization required: none
+ **/
+
+router.get("/:username/profile-data-by-username/", async function (req, res, next) {
+  try {
+    const filters = req.query;
+    const validator = jsonschema.validate(req.query, userGetProfileSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    if (!filters.gameType) filters.gameType = 'solo3';
+    if (filters.includeGeneralInfo === undefined) filters.includeGeneralInfo = true;
+    else filters.includeGeneralInfo = (filters.includeGeneralInfo === "true");
+    const stats = await User.getProfileDataByUsername(req.params.username, filters);
     return res.json({ stats });
   } catch (err) {
     return next(err);

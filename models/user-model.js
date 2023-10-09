@@ -14,6 +14,9 @@ const { BCRYPT_WORK_FACTOR } = require("../config.js");
 /** Related functions for users. */
 
 class User {
+  static bestScoreTypes = ["ttl", "avg"];
+  static bestWordTypes = ["bst", "crz", "lng"];
+
   /** authenticate user with username, password.
    *
    * Returns { username, email, is_admin }
@@ -29,7 +32,6 @@ class User {
                   password,
                   email,
                   country,
-                  bio,
                   permissions
            FROM users
            WHERE username = $1`,
@@ -137,7 +139,6 @@ class User {
                      username,
                      email,
                      country,
-                     bio,
                      permissions`,
         [
           username,
@@ -185,7 +186,6 @@ class User {
                      username,
                      email,
                      country,
-                     bio,
                      date_registered AS "dateRegistered",
                      permissions`,
         [
@@ -239,7 +239,6 @@ class User {
                   username,
                   email,
                   country,
-                  bio,
                   words_found AS "wordsFound"
                   TO_CHAR(date_registered, 'Month DD, YYYY') AS "dateRegistered",
                   permissions
@@ -342,61 +341,139 @@ class User {
 
 
   /* 
-    Given a userID, return all stats for a user
+    Given a userId, return all stats for a user
 
     Used to display stats on user profile page
   */
 
-  static async getStats(userId) {
-    let soloStats = await db.query(
-        `SELECT game_type AS "gameType",
-                num_of_plays AS "numOfPlays",
-                last_play AS "lastPlay",
-                curr_20_wma AS "curr20Wma",
-                peak_20_wma AS "peak20Wma",
-                TO_CHAR(peak_20_wma_date, 'Mon DD, YYYY') AS "peak20WmaDate",
-                curr_100_wma AS "curr100Wma",
-                peak_100_wma AS "peak100Wma",
-                TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "peak100WmaDate",
+    static async getProfileData(userId, filters) {
+      const dataObjStructure = [];
+      const promises = [];
+      if (filters.includeGeneralInfo) {
+        dataObjStructure.push({ path: ['info'], multipleResults: false });
+        promises.push(db.query(
+          `
+            SELECT id
+                   username,
+                   country,
+                   bio,
+                   words_found AS "wordsFound",
+                   last_active AS "lastActive",
+                   date_registered AS "dateRegistered"
+            FROM users
+            WHERE id = $1
+          `,
+          [userId]
+        ));
+      };
+
+      if (filters.gameType !== "free") {
+        dataObjStructure.push({ path: ['stats', filters.gameType], multipleResults: false });
+        promises.push(db.query(
+          `
+            SELECT num_of_plays AS "numOfPlays",
+                   TO_CHAR(last_play, 'Mon DD, YYYY') AS "lastPlay",
+                   curr_20_wma AS "curr20Wma",
+                   peak_20_wma AS "peak20Wma",
+                   TO_CHAR(peak_20_wma_date, 'Mon DD, YYYY') AS "peak20WmaDate",
+                   curr_100_wma AS "curr100Wma",
+                   peak_100_wma AS "peak100Wma",
+                   TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "peak100WmaDate"
+            FROM solo_stats
+            WHERE user_id = $1
+              AND game_type = $2
+          `,
+          [userId, filters.gameType]
+        ));
+      };
+      
+      for (const scoreType of this.bestScoreTypes) {
+        dataObjStructure.push({ path: ['leaderboards', `${scoreType}Score`, filters.gameType], multipleResults: true });
+        promises.push(db.query(
+          `
+            SELECT score_type AS "scoreType",
+                   score,
+                   TO_CHAR(acheived_on, 'Mon DD, YYYY') AS "date"
+            FROM best_scores
+            WHERE user_id = $1
+              AND game_type = $2
+              AND score_type = $3
+              AND score > 0
+            ORDER BY score DESC
+            LIMIT 10
+          `,
+         [userId, filters.gameType, scoreType] 
+        ));
+      }
+
+      for (const bestType of this.bestWordTypes) {
+        dataObjStructure.push({ path: ['leaderboards', `${bestType}Word`, filters.gameType], multipleResults: true });
+        promises.push(await db.query(
+          `
+            SELECT game_type AS "gameType",
+                   best_type AS "bestType",
+                   word,
+                   score,
+                   board_state AS "boardState",
+                   TO_CHAR(found_on, 'Mon DD, YYYY') AS "date"
+            FROM best_words
+            WHERE user_id = $1
+              AND game_type = $2
+              AND best_type = $3
+            ORDER BY score DESC
+            LIMIT 10
+          `,
+          [userId, filters.gameType, bestType] 
+        ));
+      }
+
+      // turn this into helper file
+      // using results array and objStructure array, builds an object
+      /* 
+        Given a promise array and objStructure array, it builds an object of results
+      */
+      const results = await Promise.all(promises);
+      const returnObj = {};
+      // loop through results along with objStructure array
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        const objStructure = dataObjStructure[i];
+        let returnObjRef = returnObj;
+        // loop through the objStructure path to build the reference to store the results
+        for (let i = 0; i < objStructure.path.length - 1; i++) {
+          const key = objStructure.path[i]
+          if (returnObjRef[key] === undefined) {
+            returnObjRef[key] = {};
+          }
+          returnObjRef = returnObjRef[key];
+        }
+        // store the results as an array if multiple results are directly if a single result
+        if (objStructure.multipleResults) {
+          returnObjRef[objStructure.path.at(-1)] = result.rows;
+        }
+        else {
+          returnObjRef[objStructure.path.at(-1)] = result.rows[0];
+        }
+      }
+  
+      return returnObj;
+    }
+
+
+  static async getProfileDataByUsername(username, filters) {
+    const userIdRes = await db.query(
+      `
+        SELECT id
         FROM users
-        WHERE id = $1
-        ORDER BY game_Type`,
-      [userId]
+        WHERE username = $1
+      `,
+      [username]
     );
-    soloStats = soloStats.rows[0];
 
-    let bestScores = await db.query(
-       `SELECT game_type AS "gameType",
-               score_type AS "scoreType",
-               score,
-               TO_CHAR(acheived_on, 'Mon DD, YYYY') AS "date"
-        FROM best_scores
-        WHERE user_id = $1
-        AND score > 0
-        ORDER BY game_type, score_type, score DESC`,
-      [userId] 
-    );
-    bestScores = bestScores.rows
-
-    let bestWords = await db.query(
-       `SELECT game_type AS "gameType",
-               best_type AS "bestType",
-               word,
-               score,
-               board_state AS "boardState",
-               TO_CHAR(found_on, 'Mon DD, YYYY') AS "date"
-        FROM best_words
-        WHERE user_id = $1
-        ORDER BY game_type, best_type, score DESC`,
-      [userId] 
-    );
-    bestWords = bestWords.rows;
-
-    const stats = { soloStats, bestScores, bestWords };
-
-    return stats;
+    return await this.getProfileData(userIdRes.rows[0].id, filters);
   }
 }
+
 
 
 module.exports = User;
