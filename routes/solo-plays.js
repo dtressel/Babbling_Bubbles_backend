@@ -36,6 +36,7 @@ const router = express.Router();
  *      crzWordScoreBar,
  *      lngWordScoreBar,
  *      tenBestWords (for "free" gameType only)
+ *        ex. [{ word, score }, ...]
  *    }
  * }
  *
