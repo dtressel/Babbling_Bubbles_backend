@@ -104,7 +104,7 @@ class BestWord {
         WHERE user_id = $1
           AND game_type = $2
           AND best_type = $3
-        LIMIT 1 OFFSET 10
+        LIMIT 1 OFFSET 9
       `,
       [userId, filters.gameType, filters.bestType]
     );
