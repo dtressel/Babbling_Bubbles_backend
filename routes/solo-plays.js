@@ -66,7 +66,7 @@ router.post("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next
  * {
  *    score,
  *    numOfWords,
- *    bestWords: [{ bestType, word, score, boardState }, ...]
+ *    bestWords: { bst: [{ bestType, word, score, boardState }, ...], crz: [], lng: [] }
  * }
  *
  * Returns

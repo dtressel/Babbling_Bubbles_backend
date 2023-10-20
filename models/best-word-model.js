@@ -16,6 +16,8 @@ class BestWord {
     bestType: "best_type"
   }
 
+  static bestWordTypes = ['bst', 'crz', 'lng'];
+
 
   /* 
     Finds best words for a particular user
@@ -120,8 +122,63 @@ class BestWord {
     Returns { bestWordId: <id> }
   */
   static async post(userId, data) {
+    // trim best words and join into one array
+    console.log(data);
+    const bestWordPromises = [];
+    const bestTypesToCheck = [];
+    for (const bestType of this.bestWordTypes) {
+      if (data.bestWords[bestType].length > 1) {
+        bestWordPromises.push(db.query(
+          `
+            SELECT score
+            FROM best_words
+            WHERE user_id = $1
+              AND game_type = $2
+              AND best_type = $3
+            ORDER BY score DESC
+            OFFSET $4 
+            LIMIT $5
+          `,
+          [userId, data.gameType, bestType, 10 - data.bestWords[bestType].length, data.bestWords[bestType].length]
+        ));
+        bestTypesToCheck.push(bestType);
+      }
+    }
+    const bestWordScoresRes = await Promise.all(bestWordPromises);
+
+    /* 
+      Trims unnecessary best words
+      Combines all best words into allBestWords array
+    */
+    const allBestWords = [];
+    for (let i = 0; i < bestTypesToCheck.length; i++) {
+      const bestType = bestTypesToCheck[i];
+      let numToTrim = 0;
+      const oldScores = bestWordScoresRes[i].rows.map(wordObj => wordObj.score);
+      const newScores = data.bestWords[bestType];
+      let oldScoreIdx = 0;
+      let newScoreIdx = 0;
+      /* 
+        Loops through new best scores
+        Compares them to old best scores (nth best score through 10th best score, same number of scores as new best scores)
+      */
+      while (newScores[newScoreIdx] !== undefined) {
+        if (newScores[newScoreIdx] <= (oldScores[oldScoreIdx] || 1)) {
+          numToTrim++;
+          oldScoreIdx++;
+          newScores.pop();
+        }
+        else {
+          newScoreIdx++;
+        }
+      }
+      data.bestWords[bestType].splice(-numToTrim, numToTrim);
+      allBestWords.push(...data.bestWords[bestType]);
+    }
+    console.log(allBestWords);
+
     // create arrays of data values
-    const dataArrays = data.words.map((wordObj) => {
+    const dataArrays = allBestWords.map((wordObj) => {
       return [userId, data.gameType, wordObj.bestType, wordObj.word, wordObj.score, wordObj.boardState];
     });
     const dataColumns = ['user_id', 'game_type', 'best_type', 'word', 'score', 'board_state'];
@@ -129,7 +186,7 @@ class BestWord {
     // Insert query
     await db.query(sqlStatement, valuesArray);
     // Delete excess rows
-    const bestTypesUpdated = data.words.reduce((accum, curr) => {
+    const bestTypesUpdated = allBestWords.reduce((accum, curr) => {
       return accum.add(curr.bestType);
     }, new Set());
     // Gather ids of rows to delete

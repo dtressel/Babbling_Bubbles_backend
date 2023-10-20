@@ -6,8 +6,7 @@
     "title": "Root Schema",
     "required": [
         "score",
-        "numOfWords",
-        "bestWords"
+        "numOfWords"
     ],
     "properties": {
         "score": {
@@ -27,83 +26,254 @@
             ]
         },
         "bestWords": {
-            "type": "array",
-            "default": [],
+            "type": "object",
+            "default": {},
             "title": "The bestWords Schema",
-            "items": {
-                "type": "object",
-                "default": {},
-                "title": "A Schema",
-                "required": [
-                    "bestType",
-                    "word",
-                    "score",
-                    "boardState"
-                ],
-                "properties": {
-                    "bestType": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The type Schema",
-                        "enum": [
-                            "bst",
-                            "crz",
-                            "lng"
+            "required": [
+                "bst",
+                "crz",
+                "lng"
+            ],
+            "properties": {
+                "bst": {
+                    "type": "array",
+                    "default": [],
+                    "title": "The bst Schema",
+                    "items": {
+                        "type": "object",
+                        "default": {},
+                        "title": "A Schema",
+                        "required": [
+                            "bestType",
+                            "word",
+                            "score",
+                            "boardState"
                         ],
-                        "examples": [
-                            "bst"
-                        ]
+                        "properties": {
+                            "bestType": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The bestType Schema",
+                                "examples": [
+                                    "bst"
+                                ]
+                            },
+                            "word": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The word Schema",
+                                "examples": [
+                                    "kiwi"
+                                ]
+                            },
+                            "score": {
+                                "type": "integer",
+                                "default": 0,
+                                "title": "The score Schema",
+                                "examples": [
+                                    60
+                                ]
+                            },
+                            "boardState": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The boardState Schema",
+                                "examples": [
+                                    "ABcDefghijklmnopqrst122"
+                                ]
+                            }
+                        },
+                        "examples": [{
+                            "bestType": "bst",
+                            "word": "kiwi",
+                            "score": 60,
+                            "boardState": "ABcDefghijklmnopqrst122"
+                        }]
                     },
-                    "word": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The word Schema",
-                        "examples": [
-                            "kiwi"
-                        ]
-                    },
-                    "score": {
-                        "type": "integer",
-                        "default": 0,
-                        "title": "The score Schema",
-                        "examples": [
-                            60
-                        ]
-                    },
-                    "boardState": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The boardState Schema",
-                        "examples": [
-                            "ABcDefghijklmnopqrst122"
-                        ]
-                    }
+                    "examples": [
+                        [{
+                            "bestType": "bst",
+                            "word": "kiwi",
+                            "score": 60,
+                            "boardState": "ABcDefghijklmnopqrst122"
+                        }]
+                    ]
                 },
-                "examples": [{
-                    "type": "bst",
-                    "word": "kiwi",
-                    "score": 60,
-                    "boardState": "ABcDefghijklmnopqrst122"
-                }]
+                "crz": {
+                    "type": "array",
+                    "default": [],
+                    "title": "The crz Schema",
+                    "items": {
+                        "type": "object",
+                        "default": {},
+                        "title": "A Schema",
+                        "required": [
+                            "bestType",
+                            "word",
+                            "score",
+                            "boardState"
+                        ],
+                        "properties": {
+                            "bestType": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The bestType Schema",
+                                "examples": [
+                                    "crz"
+                                ]
+                            },
+                            "word": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The word Schema",
+                                "examples": [
+                                    "kiwi"
+                                ]
+                            },
+                            "score": {
+                                "type": "integer",
+                                "default": 0,
+                                "title": "The score Schema",
+                                "examples": [
+                                    60
+                                ]
+                            },
+                            "boardState": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The boardState Schema",
+                                "examples": [
+                                    "ABcDefghijklmnopqrst122"
+                                ]
+                            }
+                        },
+                        "examples": [{
+                            "bestType": "crz",
+                            "word": "kiwi",
+                            "score": 60,
+                            "boardState": "ABcDefghijklmnopqrst122"
+                        }]
+                    },
+                    "examples": [
+                        [{
+                            "bestType": "crz",
+                            "word": "kiwi",
+                            "score": 60,
+                            "boardState": "ABcDefghijklmnopqrst122"
+                        }]
+                    ]
+                },
+                "lng": {
+                    "type": "array",
+                    "default": [],
+                    "title": "The lng Schema",
+                    "items": {
+                        "type": "object",
+                        "default": {},
+                        "title": "A Schema",
+                        "required": [
+                            "bestType",
+                            "word",
+                            "score",
+                            "boardState"
+                        ],
+                        "properties": {
+                            "bestType": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The bestType Schema",
+                                "examples": [
+                                    "lng"
+                                ]
+                            },
+                            "word": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The word Schema",
+                                "examples": [
+                                    "kiwi"
+                                ]
+                            },
+                            "score": {
+                                "type": "integer",
+                                "default": 0,
+                                "title": "The score Schema",
+                                "examples": [
+                                    60
+                                ]
+                            },
+                            "boardState": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The boardState Schema",
+                                "examples": [
+                                    "ABcDefghijklmnopqrst122"
+                                ]
+                            }
+                        },
+                        "examples": [{
+                            "bestType": "lng",
+                            "word": "kiwi",
+                            "score": 60,
+                            "boardState": "ABcDefghijklmnopqrst122"
+                        }]
+                    },
+                    "examples": [
+                        [{
+                            "bestType": "lng",
+                            "word": "kiwi",
+                            "score": 60,
+                            "boardState": "ABcDefghijklmnopqrst122"
+                        }]
+                    ]
+                }
             },
-            "examples": [
-                [{
-                    "type": "bst",
+            "additionalProperties": false,
+            "examples": [{
+                "bst": [{
+                    "bestType": "bst",
+                    "word": "kiwi",
+                    "score": 60,
+                    "boardState": "ABcDefghijklmnopqrst122"
+                }],
+                "crz": [{
+                    "bestType": "crz",
+                    "word": "kiwi",
+                    "score": 60,
+                    "boardState": "ABcDefghijklmnopqrst122"
+                }],
+                "lng": [{
+                    "bestType": "lng",
                     "word": "kiwi",
                     "score": 60,
                     "boardState": "ABcDefghijklmnopqrst122"
                 }]
-            ]
+            }]
         }
     },
+    "additionalProperties": false,
     "examples": [{
         "score": 354,
         "numOfWords": 21,
-        "bestWords": [{
-            "bestType": "bst",
-            "word": "kiwi",
-            "score": 60,
-            "boardState": "ABcDefghijklmnopqrst122"
-        }]
+        "bestWords": {
+            "bst": [{
+                "bestType": "bst",
+                "word": "kiwi",
+                "score": 60,
+                "boardState": "ABcDefghijklmnopqrst122"
+            }],
+            "crz": [{
+                "bestType": "crz",
+                "word": "kiwi",
+                "score": 60,
+                "boardState": "ABcDefghijklmnopqrst122"
+            }],
+            "lng": [{
+                "bestType": "lng",
+                "word": "kiwi",
+                "score": 60,
+                "boardState": "ABcDefghijklmnopqrst122"
+            }]
+        }
     }]
 }

@@ -39,7 +39,7 @@ class SoloPlay {
     {
       score,
       numOfWords,
-      bestWords: [{ bestType, word, score, boardState }, ...]
+      bestWords: { bst: [{ bestType, word, score, boardState }, ...], crz: [], lng: [] }
     }
 
     Returns:
@@ -87,9 +87,9 @@ class SoloPlay {
       newPromises2.push(BestScore.getTenBest(userId, { gameType, scoreType: 'avg' }));
     }
 
-    if (data.bestWords.length) {
+    if (data.bestWords) {
       promiseNames2.push('bestWords');
-      newPromises2.push(BestWord.post(userId, { gameType, words: data.bestWords })); /* returns nothing */
+      newPromises2.push(BestWord.post(userId, { gameType, bestWords: data.bestWords })); /* returns nothing */
     }
 
     const results2Arr = await Promise.all(newPromises2);
@@ -183,9 +183,10 @@ class SoloPlay {
       newPromises2.push(BestScore.getTenBest(userId, { gameType: "free", scoreType: 'avg' }));
     }
 
-    if (data.bestWords.length) {
+    console.log(data.bestWords);
+    if (data.bestWords) {
       promiseNames2.push('bestWords');
-      newPromises2.push(BestWord.post(userId, { gameType: "free", words: data.bestWords })); /* returns nothing */
+      newPromises2.push(BestWord.post(userId, { gameType: "free", bestWords: data.bestWords })); /* returns nothing */
     }
 
     // await all promises in newPromises2
