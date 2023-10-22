@@ -183,7 +183,6 @@ class SoloPlay {
       newPromises2.push(BestScore.getTenBest(userId, { gameType: "free", scoreType: 'avg' }));
     }
 
-    console.log(data.bestWords);
     if (data.bestWords) {
       promiseNames2.push('bestWords');
       newPromises2.push(BestWord.post(userId, { gameType: "free", bestWords: data.bestWords })); /* returns nothing */

@@ -171,7 +171,7 @@ class Leaderboard {
               `
                 SELECT u.username,
                        ss.${statType}_${wma}_wma AS "${statType}${wma}Wma"
-                       ${statType === 'peak' ? `, TO_CHAR(ss.peak_${wma}_wma_date, 'Mon DD, YYYY') AS "peak${wma}WmaDate"` : ''}
+                       ${statType === 'peak' ? `, TO_CHAR(ss.peak_${wma}_wma_date, 'Mon DD, YYYY') AS "date"` : ''}
                 FROM solo_stats AS "ss"
                 INNER JOIN users AS "u"
                   ON ss.user_id = u.id
