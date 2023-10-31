@@ -456,10 +456,10 @@ class Leaderboard {
       }
       // store the results as an array if multiple results are directly if a single result
       if (objStructure.multipleResults) {
-        returnObjRef[objStructure.path.at(-1)] = result.rows;
+        returnObjRef[objStructure.path.slice(-1)[0]] = result.rows;
       }
       else {
-        returnObjRef[objStructure.path.at(-1)] = result.rows[0];
+        returnObjRef[objStructure.path.slice(-1)[0]] = result.rows[0];
       }
     }
 

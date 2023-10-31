@@ -106,7 +106,7 @@ class SoloPlay {
     // If total score is in top ten or if there are not yet any top scores
     // (results2.bestTtlScores may be undefined or an empty array)
     if (
-      data.score > results2.bestTtlScores?.at(-1)?.score
+      data.score > results2.bestTtlScores?.slice(-1)[0]?.score
       || results2.bestTtlScores?.length < 10
     ) {
       let i = results2.bestTtlScores.length - 1;
@@ -123,7 +123,7 @@ class SoloPlay {
       returnObj.avgWordScore = avgWordScore;
       // See if average word score is in top ten
       if (
-        avgWordScore > results2.bestAvgScores?.at(-1)?.score
+        avgWordScore > results2.bestAvgScores?.slice(-1)[0]?.score
         || results2.bestAvgScores?.length < 10
       ) {
         let i = results2.bestAvgScores.length - 1;
@@ -203,7 +203,7 @@ class SoloPlay {
     // If total score is in top ten or if there are not yet any top scores
     // (results2.bestTtlScores may be undefined or an empty array)
     if (
-      data.score > results2.bestTtlScores?.at(-1)?.score
+      data.score > results2.bestTtlScores?.slice(-1)[0]?.score
       || results2.bestTtlScores?.length < 10
     ) {
       let i = results2.bestTtlScores.length - 1;
@@ -220,7 +220,7 @@ class SoloPlay {
       returnObj.avgWordScore = avgWordScore;
       // See if average word score is in top ten
       if (
-        avgWordScore > results2.bestAvgScores?.at(-1)?.score
+        avgWordScore > results2.bestAvgScores?.slice(-1)[0]?.score
         || results2.bestAvgScores?.length < 10
       ) {
         let i = results2.bestAvgScores.length - 1;
