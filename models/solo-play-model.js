@@ -57,6 +57,7 @@ class SoloPlay {
   */
 
   static async atGameEnd(playId, data, loggedInUserId) {
+    console.log('in atGameEnd');
     if (playId === '0') return await this.atGameEndFree(data, loggedInUserId);
 
     const userInfoAndWmas = await SoloScore.patchAtGameEnd(playId, data.score, loggedInUserId);

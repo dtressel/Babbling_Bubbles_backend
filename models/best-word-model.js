@@ -123,11 +123,10 @@ class BestWord {
   */
   static async post(userId, data) {
     // trim best words and join into one array
-    console.log(data);
     const bestWordPromises = [];
     const bestTypesToCheck = [];
     for (const bestType of this.bestWordTypes) {
-      if (data.bestWords[bestType].length > 1) {
+      if (data.bestWords[bestType].length > 0) {
         bestWordPromises.push(db.query(
           `
             SELECT score
@@ -175,7 +174,6 @@ class BestWord {
       data.bestWords[bestType].splice(-numToTrim, numToTrim);
       allBestWords.push(...data.bestWords[bestType]);
     }
-    console.log(allBestWords);
 
     // create arrays of data values
     const dataArrays = allBestWords.map((wordObj) => {
