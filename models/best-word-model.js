@@ -49,6 +49,7 @@ class BestWord {
         FROM best_words
         WHERE user_id = $1
           ${whereClauseBuild.whereString}
+        ORDER BY score DESC
         ${limitOffsetBuild.sqlStatement}
       `,
       valuesArray

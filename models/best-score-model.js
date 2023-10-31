@@ -67,6 +67,7 @@ class BestScore {
           WHERE user_id = $1
             AND game_type = $2
             AND score_type = $3
+          ORDER BY score DESC
           LIMIT 10
         `,
         [userId, filters.gameType, filters.scoreType]
