@@ -16,6 +16,7 @@ const { BCRYPT_WORK_FACTOR } = require("../config.js");
 class User {
   static bestScoreTypes = ["ttl", "avg"];
   static bestWordTypes = ["bst", "crz", "lng"];
+  static gameTypes = ['solo3', 'solo10', 'free'];
 
   /** authenticate user with username, password.
    *
@@ -239,7 +240,8 @@ class User {
                   username,
                   email,
                   country,
-                  words_found AS "wordsFound"
+                  bio,
+                  words_found AS "wordsFound",
                   TO_CHAR(date_registered, 'Month DD, YYYY') AS "dateRegistered",
                   permissions
            FROM users
@@ -347,19 +349,25 @@ class User {
   */
 
     static async getProfileData(userId, filters) {
+      let gameTypes;
+      if (filters.gameType) {
+        gameTypes = [filters.gameType];
+      } else{
+        gameTypes = this.gameTypes;
+      }
       const dataObjStructure = [];
       const promises = [];
       if (filters.includeGeneralInfo) {
         dataObjStructure.push({ path: ['info'], multipleResults: false });
         promises.push(db.query(
           `
-            SELECT id
+            SELECT id AS "userId",
                    username,
                    country,
                    bio,
                    words_found AS "wordsFound",
-                   last_active AS "lastActive",
-                   date_registered AS "dateRegistered"
+                   TO_CHAR(last_active, 'Mon DD, YYYY') AS "lastActive",
+                   TO_CHAR(date_registered, 'Mon DD, YYYY') AS "dateRegistered"
             FROM users
             WHERE id = $1
           `,
@@ -368,63 +376,67 @@ class User {
       };
 
       if (filters.gameType !== "free") {
-        dataObjStructure.push({ path: ['stats', filters.gameType], multipleResults: false });
-        promises.push(db.query(
-          `
-            SELECT num_of_plays AS "numOfPlays",
-                   TO_CHAR(last_play, 'Mon DD, YYYY') AS "lastPlay",
-                   curr_20_wma AS "curr20Wma",
-                   peak_20_wma AS "peak20Wma",
-                   TO_CHAR(peak_20_wma_date, 'Mon DD, YYYY') AS "peak20WmaDate",
-                   curr_100_wma AS "curr100Wma",
-                   peak_100_wma AS "peak100Wma",
-                   TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "peak100WmaDate"
-            FROM solo_stats
-            WHERE user_id = $1
-              AND game_type = $2
-          `,
-          [userId, filters.gameType]
-        ));
+        const soloStatsGameTypes = gameTypes.filter(value => value !== 'free');
+        for (const gameType of soloStatsGameTypes) {
+          dataObjStructure.push({ path: ['stats', gameType], multipleResults: false });
+          promises.push(db.query(
+            `
+              SELECT num_of_plays AS "numOfPlays",
+                     TO_CHAR(last_play, 'Mon DD, YYYY') AS "lastPlay",
+                     curr_20_wma AS "curr20Wma",
+                     peak_20_wma AS "peak20Wma",
+                     TO_CHAR(peak_20_wma_date, 'Mon DD, YYYY') AS "peak20WmaDate",
+                     curr_100_wma AS "curr100Wma",
+                     peak_100_wma AS "peak100Wma",
+                     TO_CHAR(peak_100_wma_date, 'Mon DD, YYYY') AS "peak100WmaDate"
+              FROM solo_stats
+              WHERE user_id = $1
+                AND game_type = $2
+            `,
+            [userId, gameType]
+          ));
+        };
       };
       
       for (const scoreType of this.bestScoreTypes) {
-        dataObjStructure.push({ path: ['leaderboards', `${scoreType}Score`, filters.gameType], multipleResults: true });
-        promises.push(db.query(
-          `
-            SELECT score_type AS "scoreType",
-                   score,
-                   TO_CHAR(acheived_on, 'Mon DD, YYYY') AS "date"
-            FROM best_scores
-            WHERE user_id = $1
-              AND game_type = $2
-              AND score_type = $3
-              AND score > 0
-            ORDER BY score DESC
-            LIMIT 10
-          `,
-         [userId, filters.gameType, scoreType] 
-        ));
+        for (const gameType of gameTypes) {
+          dataObjStructure.push({ path: ['leaderboards', `${scoreType}Score`, gameType], multipleResults: true });
+          promises.push(db.query(
+            `
+              SELECT score,
+                     TO_CHAR(acheived_on, 'Mon DD, YYYY') AS "date"
+              FROM best_scores
+              WHERE user_id = $1
+                AND game_type = $2
+                AND score_type = $3
+                AND score > 0
+              ORDER BY score DESC
+              LIMIT 10
+            `,
+           [userId, gameType, scoreType] 
+          ));
+        }
       }
 
       for (const bestType of this.bestWordTypes) {
-        dataObjStructure.push({ path: ['leaderboards', `${bestType}Word`, filters.gameType], multipleResults: true });
-        promises.push(await db.query(
-          `
-            SELECT game_type AS "gameType",
-                   best_type AS "bestType",
-                   word,
-                   score,
-                   board_state AS "boardState",
-                   TO_CHAR(found_on, 'Mon DD, YYYY') AS "date"
-            FROM best_words
-            WHERE user_id = $1
-              AND game_type = $2
-              AND best_type = $3
-            ORDER BY score DESC
-            LIMIT 10
-          `,
-          [userId, filters.gameType, bestType] 
-        ));
+        for (const gameType of gameTypes) {
+          dataObjStructure.push({ path: ['leaderboards', `${bestType}Word`, gameType], multipleResults: true });
+          promises.push(await db.query(
+            `
+              SELECT word,
+                     score,
+                     board_state AS "boardState",
+                     TO_CHAR(found_on, 'Mon DD, YYYY') AS "date"
+              FROM best_words
+              WHERE user_id = $1
+                AND game_type = $2
+                AND best_type = $3
+              ORDER BY score DESC
+              LIMIT 10
+            `,
+            [userId, gameType, bestType] 
+          ));
+        }
       }
 
       // turn this into helper file
