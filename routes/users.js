@@ -73,7 +73,7 @@ router.get("/", async function (req, res, next) {
  * 
  * Get info on user by id
  *
- * Returns { user: { <user data> } }
+ * Returns { user: { id, username, email, country, wordsFound, dateRegistered, permissions } }
  *
  * Authorization required: none
  **/
@@ -238,7 +238,6 @@ router.get("/:userId/profile-data", async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    if (!filters.gameType) filters.gameType = 'solo3';
     if (filters.includeGeneralInfo === undefined) filters.includeGeneralInfo = true;
     else filters.includeGeneralInfo = (filters.includeGeneralInfo === "true");
     const stats = await User.getProfileData(req.params.userId, filters);
@@ -278,11 +277,10 @@ router.get("/:username/profile-data-by-username/", async function (req, res, nex
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-    if (!filters.gameType) filters.gameType = 'solo3';
     if (filters.includeGeneralInfo === undefined) filters.includeGeneralInfo = true;
     else filters.includeGeneralInfo = (filters.includeGeneralInfo === "true");
     const stats = await User.getProfileDataByUsername(req.params.username, filters);
-    return res.json({ stats });
+    return res.json(stats);
   } catch (err) {
     return next(err);
   }
