@@ -118,6 +118,9 @@ router.get("/:username/username", async function (req, res, next) {
 
 router.patch("/:userId", ensureCorrectUserOrAdmin, async function (req, res, next) {
   try {
+    for (const key in req.body) {
+      if (req.body[key] === null) delete req.body[key];
+    }
     const validator = jsonschema.validate(req.body, userUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
